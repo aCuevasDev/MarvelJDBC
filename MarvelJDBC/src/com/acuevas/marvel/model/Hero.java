@@ -1,4 +1,4 @@
-package model;
+package com.acuevas.marvel.model;
 
 public class Hero {
 

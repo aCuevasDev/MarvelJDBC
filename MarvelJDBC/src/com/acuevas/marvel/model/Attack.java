@@ -1,4 +1,4 @@
-package model;
+package com.acuevas.marvel.model;
 
 import java.util.HashSet;
 import java.util.Set;

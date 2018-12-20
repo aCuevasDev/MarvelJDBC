@@ -1,11 +1,11 @@
-package controller;
+package com.acuevas.marvel.controller;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import model.Attack;
-import model.Attack.Type;
+import com.acuevas.marvel.model.Attack;
+import com.acuevas.marvel.model.Attack.Type;
 
 public class Manager {
 
