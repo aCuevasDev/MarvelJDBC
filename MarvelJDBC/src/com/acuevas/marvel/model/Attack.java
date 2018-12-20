@@ -5,8 +5,6 @@ import java.util.Set;
 
 public class Attack implements Comparable<Attack> {
 
-	private Type type;
-
 	public enum Type {
 		ROCK("Lizard", "Paper"), SCISSORS("Lizard", "Paper"), PAPER("Rock", "Spock"), LIZARD("Spock", "Paper"),
 		SPOCK("Scissors", "Rock");
@@ -28,6 +26,8 @@ public class Attack implements Comparable<Attack> {
 		}
 
 	}
+
+	private Type type;
 
 	public Attack(Type type) {
 		this.type = type;
