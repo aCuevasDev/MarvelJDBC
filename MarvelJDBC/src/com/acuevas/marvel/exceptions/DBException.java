@@ -12,20 +12,12 @@ public class DBException extends Exception {
 		}
 	}
 
-	DBErrors error;
-
 	public DBException(DBErrors error) {
-		this.error = error;
+		super(error.message);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Throwable#toString()
-	 */
-	@Override
-	public String toString() {
-		return error.message;
+	public DBException(Exception e) {
+		super(e);
 	}
 
 }

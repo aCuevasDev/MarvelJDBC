@@ -1,6 +1,5 @@
 package com.acuevas.marvel.controller;
 
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -12,6 +11,8 @@ import com.acuevas.marvel.model.Hero;
 import com.acuevas.marvel.persistance.MarvelDAO;
 
 public class Manager {
+	// IMPORTANT NOTE: MySql-ConnectorJ Drivers are v.5.1.47, more updated versions
+	// gave me problems.
 
 	public static void main(String[] args) {
 		List<Type> types = Arrays.asList(Type.values());
@@ -25,15 +26,12 @@ public class Manager {
 		System.out.println(attack1.compareTo(attack2));
 
 		try {
-			Hero hero = MarvelDAO.getInstance().findHero("potato");
+			Hero hero = MarvelDAO.getInstance().findHero("SuperJava");
 			System.out.println(hero.getName());
 			System.out.println(hero.getSuperpower());
+			MarvelDAO.getInstance().toString();
 
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (DBException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
