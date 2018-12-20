@@ -1,5 +1,6 @@
 package com.acuevas.marvel.controller;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -26,12 +27,14 @@ public class Manager {
 		System.out.println(attack1.compareTo(attack2));
 
 		try {
-			Hero hero = MarvelDAO.getInstance().findHero("SuperJava");
+			Hero hero = MarvelDAO.getInstance().findHero("superjava");
 			System.out.println(hero.getName());
 			System.out.println(hero.getSuperpower());
 			MarvelDAO.getInstance().toString();
 
 		} catch (DBException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}

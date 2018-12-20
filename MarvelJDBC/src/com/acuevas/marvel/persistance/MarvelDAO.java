@@ -80,11 +80,15 @@ public class MarvelDAO {
 			String query = "select * from superhero where name ='" + name + "'";
 			ResultSet resultSet = statement.executeQuery(query);
 			String superpower = null;
-			if (resultSet.next())
+			String name2 = null;
+			if (resultSet.next()) {
+				name2 = resultSet.getString("name"); // Getting the name again because the user my input it in
+														// underCase and it's still valid for the DB.
+														// Ex: User input: superjava Real name: SuperJava
 				superpower = resultSet.getString("superpower");
-			else
+			} else
 				throw new DBException(DBErrors.DOESNT_EXIST);
-			return new Hero(name, superpower);
+			return new Hero(name2, superpower);
 		});
 
 	}
