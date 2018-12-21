@@ -3,8 +3,11 @@ package com.acuevas.marvel.persistance;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.acuevas.marvel.exceptions.DBException;
 import com.acuevas.marvel.exceptions.DBException.DBErrors;
@@ -19,6 +22,7 @@ import com.mysql.jdbc.StatementImpl;
  * @author Alex
  *
  */
+
 public class MarvelDAO {
 
 	private Connection connection;
@@ -30,6 +34,7 @@ public class MarvelDAO {
 	 * Constructor
 	 */
 	private MarvelDAO() {
+
 	}
 
 	/**
@@ -75,9 +80,9 @@ public class MarvelDAO {
 	 */
 	public Hero findHero(String name) throws DBException, SQLException {
 
-		return (Hero) marvelDAO.execute(() -> {
+		return (Hero) executeQuery(() -> {
 			statement = connection.createStatement();
-			String query = "select * from superhero where name ='" + name + "'";
+			String query = "select * from superhero where name ='" + name + "';";
 			ResultSet resultSet = statement.executeQuery(query);
 			String superpower = null;
 			String name2 = null;
@@ -97,8 +102,8 @@ public class MarvelDAO {
 	 * Connects with the DB, executes the given IMyRunnable and then closes all the
 	 * resources before disconnecting from the DB.
 	 * 
-	 * Note: No need to close ResultSets as they close automatically when you close
-	 * its Statement/PreparedStatement.
+	 * Note: No need to close ResultSets as they get closed automatically when you
+	 * close its Statement/PreparedStatement.
 	 * 
 	 * @see Statement#close()
 	 * @see StatementImpl#close()
@@ -108,7 +113,7 @@ public class MarvelDAO {
 	 * @return Object ... An Object.
 	 */
 	@SuppressWarnings("rawtypes")
-	private Object execute(IMyRunnable runnable) throws DBException, SQLException {
+	private Object executeQuery(IMyRunnable runnable) throws DBException, SQLException {
 		Object obj;
 		try {
 			connect();
@@ -128,6 +133,24 @@ public class MarvelDAO {
 			throw new DBException(e);
 		}
 		return obj;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<String> getColumnNames(String table) throws DBException, SQLException {
+		// TODO RELIES ON ORDER ATM
+		return (List<String>) executeQuery(() -> {
+			statement = connection.createStatement();
+			List<String> columnNames = new ArrayList<>();
+			String query = "select * from " + table + " limit 1;";
+			ResultSet resultSet = statement.executeQuery(query);
+			resultSet.beforeFirst();
+			ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+			int total = resultSetMetaData.getColumnCount();
+			for (int i = 1; i < total + 1; i++)
+				columnNames.add(resultSetMetaData.getColumnName(i));
+
+			return columnNames;
+		});
 	}
 
 }

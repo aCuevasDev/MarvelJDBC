@@ -9,11 +9,12 @@ import com.acuevas.marvel.exceptions.DBException;
 import com.acuevas.marvel.model.Attack;
 import com.acuevas.marvel.model.Attack.Type;
 import com.acuevas.marvel.model.Hero;
+import com.acuevas.marvel.persistance.DBTable;
 import com.acuevas.marvel.persistance.MarvelDAO;
 
 public class Manager {
 	// IMPORTANT NOTE: MySql-ConnectorJ Drivers are v.5.1.47, more updated versions
-	// gave me problems.
+	// give problems.
 
 	public static void main(String[] args) {
 		List<Type> types = Arrays.asList(Type.values());
@@ -31,6 +32,12 @@ public class Manager {
 			System.out.println(hero.getName());
 			System.out.println(hero.getSuperpower());
 			MarvelDAO.getInstance().toString();
+
+			List<String> list = MarvelDAO.getInstance().getColumnNames("gem");
+
+//			list.forEach(System.out::println);
+
+			System.out.println(DBTable.Gem.getColumns());
 
 		} catch (DBException e) {
 			e.printStackTrace();
