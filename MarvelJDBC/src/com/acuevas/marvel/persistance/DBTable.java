@@ -1,19 +1,7 @@
 package com.acuevas.marvel.persistance;
 
-import java.util.Arrays;
-import java.util.List;
-
 public enum DBTable {
-	Gem(DBColumn.name, DBColumn.user, DBColumn.owner, DBColumn.place), Enemy, Superhero, User, Place;
-	private List<DBColumn> columns;
-
-	private DBTable(DBColumn... columns) {
-		this.columns = Arrays.asList(columns);
-	}
-
-	public List<DBColumn> getColumns() {
-		return columns;
-	}
+	Gem, Enemy, Superhero, User, Place;
 
 	@SuppressWarnings("rawtypes")
 	public enum DBColumn {

@@ -2,6 +2,7 @@ package com.acuevas.marvel.controller;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -10,7 +11,9 @@ import com.acuevas.marvel.model.Attack;
 import com.acuevas.marvel.model.Attack.Type;
 import com.acuevas.marvel.model.Hero;
 import com.acuevas.marvel.persistance.DBTable;
+import com.acuevas.marvel.persistance.DBTable.DBColumn;
 import com.acuevas.marvel.persistance.MarvelDAO;
+import com.acuevas.marvel.persistance.Query;
 
 public class Manager {
 	// IMPORTANT NOTE: MySql-ConnectorJ Drivers are v.5.1.47, more updated versions
@@ -37,7 +40,10 @@ public class Manager {
 
 //			list.forEach(System.out::println);
 
-			System.out.println(DBTable.Gem.getColumns());
+			Query query = new Query();
+			LinkedHashMap<DBColumn, Object> testMap = new LinkedHashMap<>();
+			testMap.put(DBColumn.name, "Mind Gem");
+			query.select(DBColumn.name).from(DBTable.Gem).where(DBColumn.name, testMap);
 
 		} catch (DBException e) {
 			e.printStackTrace();
