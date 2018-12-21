@@ -1,48 +1,93 @@
 package com.acuevas.marvel.persistance;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
+import com.acuevas.marvel.exceptions.QueryException;
+import com.acuevas.marvel.exceptions.QueryException.QueryError;
 import com.acuevas.marvel.persistance.DBTable.DBColumn;
 import com.mysql.jdbc.Connection;
 
 public class Query {
-	String query;
+	String query = "";
+	List<Object> comparators = new ArrayList<>();
 	Connection connection;
 	PreparedStatement preparedStatement;
 
+	boolean where = false;
+
 	public Query() {
-		query = "select * from ?";
+	}
+
+	public ResultSet insertInto(DBTable dbTable, List<Object> values) {
+		query.concat("insert into " + dbTable.name() + " values (");
+		values.forEach(value -> query.concat("?,"));
+		query.substring(query.lastIndexOf(",")).replace(",", "");
+		return executeQuery();
+	}
+
+	private ResultSet executeQuery() {
+		insertValuesIntoQuery();
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private void insertValuesIntoQuery() {
+		// TODO Auto-generated method stub
+
+	}
+
+	public Query delete() {
+		query += "delete ";
+		return this;
+	}
+
+	public Query select() {
+		query += "select * ";
+		return this;
 	}
 
 	public Query select(DBColumn column) {
-		query.replace("select *", "select " + column.name());
+		query += ("select " + column.name() + " ");
 		return this;
 	}
 
 	public Query from(DBTable dbTable) {
-		query.replace("from ?", "from " + dbTable.name());
+		query += ("from " + dbTable.name() + " ");
 		return this;
 	}
 
-	public Query where(DBColumn column, LinkedHashMap<DBColumn, Object> comparators) throws SQLException {
+	public Query where(DBColumn column, Object comparator) throws SQLException {
 		// TODO MAYBE USE query.matches to check if the query is right?
 
-		query.concat("where " + column.name() + " = '");
-		List<Object> comparatorsValues = new ArrayList<Object>(comparators.values());
-		comparatorsValues.forEach(comparator -> query.concat("?,"));
-		query.substring(query.lastIndexOf(",")).replace(",", ""); // TODO CHECK BETTER WAY TO THIS WITH DOCUMENTATION
-
-		List<DBColumn> preparedStatement = (List<DBColumn>) connection.prepareStatement(query);
-		/*
-		 * comparatorsValues.forEach(comparator -> { int i = 0; if
-		 * (comparator.getClass().equals(String.class))
-		 * preparedStatement.setString(comparators., arg1); });
-		 */
+		query += ("where " + column.name() + " = ? ");
+		comparators.add(comparator);
+		where = true;
 		return this;
 	}
+
+	public Query and(DBColumn column, Object comparator) throws QueryException {
+		if (!where)
+			throw new QueryException(QueryError.WHERE_BEFORE);
+
+		query.concat("and " + column.name() + " = ? ");
+		comparators.add(comparator);
+		return this;
+	}
+
+	public Query or(DBColumn column, Object comparator) throws QueryException {
+		if (!where)
+			throw new QueryException(QueryError.WHERE_BEFORE);
+
+		query.concat("or " + column.name() + " = ? ");
+		comparators.add(comparator);
+		return this;
+	}
+
+	// TODO IN THE SET WHATEVER SELECTOR THROW ERROR IF THE ARGUMENT GIVEN IT'S NOT
+	// CORRECT (INVALIDARGUMENT)
 
 }

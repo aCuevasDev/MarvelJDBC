@@ -2,7 +2,6 @@ package com.acuevas.marvel.controller;
 
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -41,9 +40,8 @@ public class Manager {
 //			list.forEach(System.out::println);
 
 			Query query = new Query();
-			LinkedHashMap<DBColumn, Object> testMap = new LinkedHashMap<>();
-			testMap.put(DBColumn.name, "Mind Gem");
-			query.select(DBColumn.name).from(DBTable.Gem).where(DBColumn.name, testMap);
+
+			query.select(DBColumn.name).from(DBTable.Gem).where(DBColumn.name, "Mind Gem");
 
 		} catch (DBException e) {
 			e.printStackTrace();
