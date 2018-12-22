@@ -1,4 +1,4 @@
-package com.acuevas.marvel.persistance;
+package com.acuevas.marvel.lib;
 
 /**
  * Custom Runnable interface which is able to throw exceptions and return an

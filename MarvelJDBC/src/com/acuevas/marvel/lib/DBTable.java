@@ -1,4 +1,4 @@
-package com.acuevas.marvel.persistance;
+package com.acuevas.marvel.lib;
 
 public enum DBTable {
 	Gem, Enemy, Superhero, User, Place;

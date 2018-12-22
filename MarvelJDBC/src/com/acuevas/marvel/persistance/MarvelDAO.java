@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.acuevas.marvel.exceptions.DBException;
 import com.acuevas.marvel.exceptions.DBException.DBErrors;
+import com.acuevas.marvel.lib.MyRunnable;
 import com.acuevas.marvel.model.Hero;
 import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.StatementImpl;

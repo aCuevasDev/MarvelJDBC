@@ -1,4 +1,4 @@
-package com.acuevas.marvel.persistance;
+package com.acuevas.marvel.lib;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,7 +8,7 @@ import java.util.List;
 
 import com.acuevas.marvel.exceptions.QueryException;
 import com.acuevas.marvel.exceptions.QueryException.QueryError;
-import com.acuevas.marvel.persistance.DBTable.DBColumn;
+import com.acuevas.marvel.lib.DBTable.DBColumn;
 import com.mysql.jdbc.Connection;
 
 /**
