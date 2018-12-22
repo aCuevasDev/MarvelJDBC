@@ -107,13 +107,13 @@ public class MarvelDAO {
 	 * 
 	 * @see Statement#close()
 	 * @see StatementImpl#close()
-	 * @param runnable IMyRunnable ... The method to run
+	 * @param runnable MyRunnable ... The method to run
 	 * @throws DBException  if an error occurs while running the method
 	 * @throws SQLException Database access error
 	 * @return Object ... An Object.
 	 */
 	@SuppressWarnings("rawtypes")
-	private Object executeQuery(IMyRunnable runnable) throws DBException, SQLException {
+	private Object executeQuery(MyRunnable runnable) throws DBException, SQLException {
 		Object obj;
 		try {
 			connect();

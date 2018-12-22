@@ -10,10 +10,10 @@ package com.acuevas.marvel.persistance;
  *
  */
 @FunctionalInterface
-public interface IMyRunnable<T> {
+public interface MyRunnable<T> {
 
 	/**
-	 * When an object implementing interface IMyRunnable is used to create a thread,
+	 * When an object implementing interface MyRunnable is used to create a thread,
 	 * starting the thread causes the object's run method to be called in that
 	 * separately executing thread. from @Runnable
 	 * 
