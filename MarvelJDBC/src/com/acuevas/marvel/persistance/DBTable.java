@@ -10,10 +10,18 @@ public enum DBTable {
 		points(int.class), description(String.class), north(String.class), south(String.class), east(String.class),
 		west(String.class);
 
-		Class returnType;
+		private Class returnType;
 
 		DBColumn(Class class1) {
 			returnType = class1;
 		}
+
+		/**
+		 * @return the returnType
+		 */
+		public Class getReturnType() {
+			return returnType;
+		}
+
 	}
 }
