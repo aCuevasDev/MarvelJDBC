@@ -29,21 +29,28 @@ public class QueryBuilder {
 	public QueryBuilder() {
 	}
 
-	public ResultSet insertInto(DBTable dbTable, List<Object> values) {
+	public boolean insertInto(DBTable dbTable, List<Object> values) {
 		query.concat("insert into " + dbTable.name() + " values (");
 		values.forEach(value -> query.concat("?,"));
 		query.substring(query.lastIndexOf(",")).replace(",", "");
-		return executeQuery();
+		return executeUpdate();
 	}
 
 	private ResultSet executeQuery() {
+		// TODO EXECUTES THE QUERY AND RETURNS A RESULTSET.
 		insertValuesIntoQuery();
-		// TODO Auto-generated method stub
 		return null;
 	}
 
+	private boolean executeUpdate() {
+		// TODO THIS METHOD EXECUTES A QUERY WHICH RETURNS NOTHING, JUST TRUE IF
+		// EVERYTHING'S OKAY.
+		insertValuesIntoQuery();
+		return false;
+	}
+
 	private void insertValuesIntoQuery() {
-		// TODO Auto-generated method stub
+		// TODO inserts the values into the ? of the PreparedStatement.
 
 	}
 
@@ -94,7 +101,7 @@ public class QueryBuilder {
 		return this;
 	}
 
-	// TODO IN THE SET WHATEVER SELECTOR THROW ERROR IF THE ARGUMENT GIVEN IT'S NOT
+	// TODO IN THE SET SELECTOR, THROW ERROR IF THE ARGUMENT GIVEN IT'S NOT
 	// CORRECT (INVALIDARGUMENT)
 
 }
