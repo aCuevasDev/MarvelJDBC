@@ -11,7 +11,14 @@ import com.acuevas.marvel.exceptions.QueryException.QueryError;
 import com.acuevas.marvel.persistance.DBTable.DBColumn;
 import com.mysql.jdbc.Connection;
 
-public class Query {
+/**
+ * Allows the creation of different complex SQL query by separating the
+ * construction process. Follows the Builder design pattern.
+ * 
+ * @author Alex
+ *
+ */
+public class QueryBuilder {
 	String query = "";
 	List<Object> comparators = new ArrayList<>();
 	Connection connection;
@@ -19,7 +26,7 @@ public class Query {
 
 	boolean where = false;
 
-	public Query() {
+	public QueryBuilder() {
 	}
 
 	public ResultSet insertInto(DBTable dbTable, List<Object> values) {
@@ -40,27 +47,27 @@ public class Query {
 
 	}
 
-	public Query delete() {
+	public QueryBuilder delete() {
 		query += "delete ";
 		return this;
 	}
 
-	public Query select() {
+	public QueryBuilder select() {
 		query += "select * ";
 		return this;
 	}
 
-	public Query select(DBColumn column) {
+	public QueryBuilder select(DBColumn column) {
 		query += ("select " + column.name() + " ");
 		return this;
 	}
 
-	public Query from(DBTable dbTable) {
+	public QueryBuilder from(DBTable dbTable) {
 		query += ("from " + dbTable.name() + " ");
 		return this;
 	}
 
-	public Query where(DBColumn column, Object comparator) throws SQLException {
+	public QueryBuilder where(DBColumn column, Object comparator) throws SQLException {
 		// TODO MAYBE USE query.matches to check if the query is right?
 
 		query += ("where " + column.name() + " = ? ");
@@ -69,7 +76,7 @@ public class Query {
 		return this;
 	}
 
-	public Query and(DBColumn column, Object comparator) throws QueryException {
+	public QueryBuilder and(DBColumn column, Object comparator) throws QueryException {
 		if (!where)
 			throw new QueryException(QueryError.WHERE_BEFORE);
 
@@ -78,7 +85,7 @@ public class Query {
 		return this;
 	}
 
-	public Query or(DBColumn column, Object comparator) throws QueryException {
+	public QueryBuilder or(DBColumn column, Object comparator) throws QueryException {
 		if (!where)
 			throw new QueryException(QueryError.WHERE_BEFORE);
 

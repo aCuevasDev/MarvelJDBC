@@ -12,7 +12,7 @@ import com.acuevas.marvel.model.Hero;
 import com.acuevas.marvel.persistance.DBTable;
 import com.acuevas.marvel.persistance.DBTable.DBColumn;
 import com.acuevas.marvel.persistance.MarvelDAO;
-import com.acuevas.marvel.persistance.Query;
+import com.acuevas.marvel.persistance.QueryBuilder;
 
 public class Manager {
 	// IMPORTANT NOTE: MySql-ConnectorJ Drivers are v.5.1.47, more updated versions
@@ -39,7 +39,7 @@ public class Manager {
 
 //			list.forEach(System.out::println);
 
-			Query query = new Query();
+			QueryBuilder query = new QueryBuilder();
 
 			query.select(DBColumn.name).from(DBTable.Gem).where(DBColumn.name, "Mind Gem");
 
