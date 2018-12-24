@@ -7,9 +7,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.acuevas.marvel.exceptions.QueryException;
-import com.acuevas.marvel.exceptions.QueryException.QueryError;
 import com.acuevas.marvel.lib.DBTable.DBColumn;
+import com.acuevas.marvel.lib.exceptions.QueryException;
+import com.acuevas.marvel.lib.exceptions.QueryException.QueryError;
 import com.acuevas.marvel.persistance.MarvelDAO;
 
 /**
@@ -31,29 +31,72 @@ public class QueryBuilder {
 		connection = MarvelDAO.getInstance().getConnection();
 	}
 
-	public boolean insertInto(DBTable dbTable, List<Object> values) {
+	public boolean insertInto(DBTable dbTable, List<Object> values) throws SQLException {
 		query.concat("insert into " + dbTable.name() + " values (");
 		values.forEach(value -> query.concat("?,"));
 		query.substring(query.lastIndexOf(",")).replace(",", "");
 		return executeUpdate();
 	}
 
-	private ResultSet executeQuery() {
+	public ResultSet executeQuery() throws SQLException {
 		// TODO EXECUTES THE QUERY AND RETURNS A RESULTSET.
 		insertValuesIntoQuery();
 		return null;
 	}
 
-	private boolean executeUpdate() {
+	private boolean executeUpdate() throws SQLException {
 		// TODO THIS METHOD EXECUTES A QUERY WHICH RETURNS NOTHING, JUST TRUE IF
 		// EVERYTHING'S OKAY.
 		insertValuesIntoQuery();
 		return false;
 	}
 
-	private void insertValuesIntoQuery() {
+	private void insertValuesIntoQuery() throws SQLException {
 		// TODO inserts the values into the ? of the PreparedStatement.
+		preparedStatement = connection.prepareStatement(query);
+		comparators.forEach(this::safeSelector);
 
+	}
+
+	/**
+	 * Safely wraps the exceptions thrown in
+	 * {@link QueryBuilder#setSelector(Object)} into a RunnableException. Allowing
+	 * the method to be used in the
+	 * {@link Iterable#forEach(java.util.function.Consumer)} without loosing the
+	 * Exceptions.
+	 * 
+	 * @param comparator .. The object to insert.
+	 * @throws RuntimeException When a {@link SQLException} or
+	 *                          {@link QueryException} is thrown.
+	 */
+	private void safeSelector(Object comparator) throws RuntimeException {
+		try {
+			setSelector(comparator);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Sets the parameter given into the PreparedStatement.
+	 * 
+	 * @param comparator ... The object to insert.
+	 * @throws SQLException   When JDBC encounters an error connecting to the DB.
+	 * @throws QueryException When the object inserted is not supported.
+	 */
+	private void setSelector(Object comparator) throws SQLException, QueryException {
+		int index = comparators.indexOf(comparator);
+		@SuppressWarnings("rawtypes")
+		Class objClass = comparator.getClass();
+
+		if (objClass.equals(Integer.class) | objClass.equals(int.class))
+			preparedStatement.setInt(index, (int) comparator);
+		else if (objClass.equals(String.class))
+			preparedStatement.setString(index, (String) comparator);
+		else if (objClass.equals(Double.class) | objClass.equals(double.class))
+			preparedStatement.setDouble(index, (double) comparator);
+		else
+			throw new QueryException(QueryError.NOT_SUPPORTED, comparator);
 	}
 
 	public QueryBuilder delete() {
@@ -102,8 +145,5 @@ public class QueryBuilder {
 		comparators.add(comparator);
 		return this;
 	}
-
-	// TODO IN THE SET SELECTOR, THROW ERROR IF THE ARGUMENT GIVEN IT'S NOT
-	// CORRECT (INVALIDARGUMENT)
 
 }

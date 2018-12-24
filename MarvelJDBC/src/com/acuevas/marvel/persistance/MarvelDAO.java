@@ -11,7 +11,10 @@ import java.util.List;
 
 import com.acuevas.marvel.exceptions.DBException;
 import com.acuevas.marvel.exceptions.DBException.DBErrors;
+import com.acuevas.marvel.lib.DBTable;
+import com.acuevas.marvel.lib.DBTable.DBColumn;
 import com.acuevas.marvel.lib.MyRunnable;
+import com.acuevas.marvel.lib.QueryBuilder;
 import com.acuevas.marvel.model.Hero;
 import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.StatementImpl;
@@ -82,9 +85,13 @@ public class MarvelDAO {
 	public Hero findHero(String name) throws DBException, SQLException {
 
 		return (Hero) executeQuery(() -> {
-			statement = connection.createStatement();
-			String query = "select * from superhero where name ='" + name + "';";
-			ResultSet resultSet = statement.executeQuery(query);
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.Superhero).where(DBColumn.name, name);
+			ResultSet resultSet = query.executeQuery();
+			/*
+			 * String query2 = "select * from superhero where name ='" + name + "';";
+			 * ResultSet resultSet = statement.executeQuery(query);
+			 */
 			String superpower = null;
 			String name2 = null;
 			if (resultSet.next()) {
