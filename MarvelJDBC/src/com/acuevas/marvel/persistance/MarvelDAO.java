@@ -154,4 +154,13 @@ public class MarvelDAO {
 		});
 	}
 
+	/**
+	 * ^
+	 * 
+	 * @return Connection... the connection to the DB.
+	 */
+	public Connection getConnection() {
+		return connection;
+	}
+
 }

@@ -1,5 +1,6 @@
 package com.acuevas.marvel.lib;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,7 +10,7 @@ import java.util.List;
 import com.acuevas.marvel.exceptions.QueryException;
 import com.acuevas.marvel.exceptions.QueryException.QueryError;
 import com.acuevas.marvel.lib.DBTable.DBColumn;
-import com.mysql.jdbc.Connection;
+import com.acuevas.marvel.persistance.MarvelDAO;
 
 /**
  * Allows the creation of different complex SQL query by separating the
@@ -27,6 +28,7 @@ public class QueryBuilder {
 	boolean where = false;
 
 	public QueryBuilder() {
+		connection = MarvelDAO.getInstance().getConnection();
 	}
 
 	public boolean insertInto(DBTable dbTable, List<Object> values) {
