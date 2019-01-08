@@ -55,7 +55,7 @@ public class QueryBuilder {
 		// TODO inserts the values into the ? of the PreparedStatement.
 		preparedStatement = connection.prepareStatement(query);
 		comparators.forEach(this::safeSelector);
-
+		// TODO TRYCATCH TO THROW NEW EXCEPTION
 	}
 
 	/**

@@ -106,6 +106,18 @@ public class MarvelDAO {
 
 	}
 
+	// TODO TEST THIS
+	public boolean isVillianPresent(String place) throws DBException, SQLException {
+		return (boolean) executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.Enemy).where(DBColumn.place, place);
+			ResultSet resultSet = query.executeQuery();
+			boolean result = resultSet.next();
+
+			return result;
+		});
+	}
+
 	/**
 	 * Connects with the DB, executes the given IMyRunnable and then closes all the
 	 * resources before disconnecting from the DB.
@@ -128,17 +140,18 @@ public class MarvelDAO {
 
 			obj = runnable.myRun();
 
-			if (statement != null && !statement.isClosed())
-				statement.close();
-			if (preparedStatement != null && !preparedStatement.isClosed())
-				preparedStatement.close();
-			disconnect();
 		} catch (SQLException e) {
 			throw e;
 		} catch (DBException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new DBException(e);
+		} finally {
+			if (statement != null && !statement.isClosed())
+				statement.close();
+			if (preparedStatement != null && !preparedStatement.isClosed())
+				preparedStatement.close();
+			disconnect();
 		}
 		return obj;
 	}
