@@ -31,30 +31,45 @@ public class QueryBuilder {
 		connection = MarvelDAO.getInstance().getConnection();
 	}
 
-	public boolean insertInto(DBTable dbTable, List<Object> values) throws SQLException {
+	public boolean insertInto(DBTable dbTable, List<Object> values) throws SQLException, QueryException {
 		query.concat("insert into " + dbTable.name() + " values (");
 		values.forEach(value -> query.concat("?,"));
-		query.substring(query.lastIndexOf(",")).replace(",", "");
+		query.substring(query.lastIndexOf(",")).replace(",", ")");
 		return executeUpdate();
 	}
 
-	public ResultSet executeQuery() throws SQLException {
+	public ResultSet executeQuery() {
 		// TODO EXECUTES THE QUERY AND RETURNS A RESULTSET.
-		insertValuesIntoQuery();
+
+		try {
+			insertValuesIntoQuery();
+		} catch (SQLException | QueryException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return null;
 	}
 
-	private boolean executeUpdate() throws SQLException {
+	private boolean executeUpdate() {
 		// TODO THIS METHOD EXECUTES A QUERY WHICH RETURNS NOTHING, JUST TRUE IF
 		// EVERYTHING'S OKAY.
-		insertValuesIntoQuery();
+		try {
+			insertValuesIntoQuery();
+		} catch (SQLException | QueryException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return false;
 	}
 
-	private void insertValuesIntoQuery() throws SQLException {
+	private void insertValuesIntoQuery() throws SQLException, QueryException {
 		// TODO inserts the values into the ? of the PreparedStatement.
 		preparedStatement = connection.prepareStatement(query);
-		comparators.forEach(this::safeSelector);
+		try {
+			comparators.forEach(this::safeSelector);
+		} catch (RuntimeException e) {
+			throw new QueryException(e.getCause());
+		}
 		// TODO TRYCATCH TO THROW NEW EXCEPTION
 	}
 
@@ -89,11 +104,11 @@ public class QueryBuilder {
 		@SuppressWarnings("rawtypes")
 		Class objClass = comparator.getClass();
 
-		if (objClass.equals(Integer.class) | objClass.equals(int.class))
+		if (objClass.equals(Integer.class) || objClass.equals(int.class))
 			preparedStatement.setInt(index, (int) comparator);
 		else if (objClass.equals(String.class))
 			preparedStatement.setString(index, (String) comparator);
-		else if (objClass.equals(Double.class) | objClass.equals(double.class))
+		else if (objClass.equals(Double.class) || objClass.equals(double.class))
 			preparedStatement.setDouble(index, (double) comparator);
 		else
 			throw new QueryException(QueryError.NOT_SUPPORTED, comparator);

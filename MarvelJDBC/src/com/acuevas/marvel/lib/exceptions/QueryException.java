@@ -29,4 +29,8 @@ public class QueryException extends Exception {
 	public QueryException(QueryError error, Object comparator) {
 		super(error.message + " " + comparator.getClass());
 	}
+
+	public QueryException(Throwable cause) {
+		super(cause);
+	}
 }

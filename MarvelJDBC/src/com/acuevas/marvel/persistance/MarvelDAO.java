@@ -52,13 +52,14 @@ public class MarvelDAO {
 		return marvelDAO;
 	}
 
+//TODO CHANGE THIS TO PRIVATE
 	/**
 	 * Connects the program with the DB
 	 * 
 	 * @throws SQLException
 	 */
-	private void connect() throws SQLException {
-		String url = "jdbc:mysql://localhost:3306/marvel?useSSL=false";
+	public void connect() throws SQLException {
+		String url = "jdbc:mysql://localhost:3306/marvel?useSSL=false&allowPublicKeyRetrieval=true";
 		String user = "marvel";
 		String pass = "marvel";
 		connection = DriverManager.getConnection(url, user, pass);
@@ -151,7 +152,8 @@ public class MarvelDAO {
 				statement.close();
 			if (preparedStatement != null && !preparedStatement.isClosed())
 				preparedStatement.close();
-			disconnect();
+			if (connection != null)
+				disconnect();
 		}
 		return obj;
 	}
