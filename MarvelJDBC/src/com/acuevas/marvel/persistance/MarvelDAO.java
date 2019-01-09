@@ -71,7 +71,8 @@ public class MarvelDAO {
 	 * @throws SQLException
 	 */
 	private void disconnect() throws SQLException {
-		connection.close();
+		if (connection != null)
+			connection.close();
 	}
 
 	/**
@@ -152,8 +153,7 @@ public class MarvelDAO {
 				statement.close();
 			if (preparedStatement != null && !preparedStatement.isClosed())
 				preparedStatement.close();
-			if (connection != null)
-				disconnect();
+			disconnect();
 		}
 		return obj;
 	}
