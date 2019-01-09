@@ -69,6 +69,7 @@ public class QueryBuilder {
 			comparators.forEach(this::safeSelector);
 		} catch (RuntimeException e) {
 			throw new QueryException(e.getCause());
+			// TODO try instance of
 		}
 		// TODO TRYCATCH TO THROW NEW EXCEPTION
 	}
