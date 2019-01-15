@@ -15,7 +15,8 @@ import com.acuevas.marvel.lib.DBTable;
 import com.acuevas.marvel.lib.DBTable.DBColumn;
 import com.acuevas.marvel.lib.MyRunnable;
 import com.acuevas.marvel.lib.QueryBuilder;
-import com.acuevas.marvel.model.Hero;
+import com.acuevas.marvel.model.SuperHero;
+import com.acuevas.marvel.model.User;
 import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.StatementImpl;
 
@@ -84,9 +85,9 @@ public class MarvelDAO {
 	 * @throws SQLException Database access error
 	 * @throws DBException  if the name given doesn't exist in the DB
 	 */
-	public Hero findHero(String name) throws DBException, SQLException {
+	public SuperHero findHero(String name) throws DBException, SQLException {
 
-		return (Hero) executeQuery(() -> {
+		return (SuperHero) executeQuery(() -> {
 			QueryBuilder query = new QueryBuilder();
 			query.select().from(DBTable.Superhero).where(DBColumn.name, name);
 			ResultSet resultSet = query.executeQuery();
@@ -103,7 +104,7 @@ public class MarvelDAO {
 				superpower = resultSet.getString("superpower");
 			} else
 				throw new DBException(DBErrors.DOESNT_EXIST);
-			return new Hero(name2, superpower);
+			return new SuperHero(name2, superpower);
 		});
 
 	}
@@ -114,10 +115,34 @@ public class MarvelDAO {
 			QueryBuilder query = new QueryBuilder();
 			query.select().from(DBTable.Enemy).where(DBColumn.place, place);
 			ResultSet resultSet = query.executeQuery();
-			boolean result = resultSet.next();
 
-			return result;
+			return resultSet.next();
 		});
+	}
+
+	// TODO get place by name and get superhero
+	// TODO TEST
+	public boolean isRegistered(User user) throws DBException, SQLException {
+		return (boolean) executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.User).where(DBColumn.username, user.getUsername());
+			ResultSet resultSet = query.executeQuery();
+
+			return resultSet.next();
+		});
+	}
+
+	/*
+	 * public void register(User user) { executeQuery(() -> { QueryBuilder query =
+	 * new QueryBuilder(); query.insertInto(DBTable.User, user); }); }
+	 */
+	// TODO THIS
+	/**
+	 * 
+	 */
+	public List<Object> getPropertiesListed(User user) {
+		List<Object> userProperties = new ArrayList();
+		return null;
 	}
 
 	/**

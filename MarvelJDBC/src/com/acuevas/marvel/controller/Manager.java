@@ -11,7 +11,7 @@ import com.acuevas.marvel.lib.QueryBuilder;
 import com.acuevas.marvel.lib.DBTable.DBColumn;
 import com.acuevas.marvel.model.Attack;
 import com.acuevas.marvel.model.Attack.Type;
-import com.acuevas.marvel.model.Hero;
+import com.acuevas.marvel.model.SuperHero;
 import com.acuevas.marvel.persistance.MarvelDAO;
 
 public class Manager {
@@ -30,7 +30,7 @@ public class Manager {
 		System.out.println(attack1.compareTo(attack2));
 
 		try {
-			Hero hero = MarvelDAO.getInstance().findHero("superjava");
+			SuperHero hero = MarvelDAO.getInstance().findHero("superjava");
 			System.out.println(hero.getName());
 			System.out.println(hero.getSuperpower());
 			MarvelDAO.getInstance().toString();

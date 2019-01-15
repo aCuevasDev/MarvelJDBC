@@ -1,11 +1,11 @@
 package com.acuevas.marvel.model;
 
-public class Hero {
+public class SuperHero {
 
 	private String name;
 	private String superpower;
 
-	public Hero(String name, String superpower) {
+	public SuperHero(String name, String superpower) {
 		this.name = name;
 		this.superpower = superpower;
 	}
