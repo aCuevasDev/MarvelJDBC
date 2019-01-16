@@ -54,9 +54,9 @@ public class QueryBuilder {
 		return null;
 	}
 
-	private boolean executeUpdate() {
+	private void executeUpdate() thorws DBException, SQLException {
 		// TODO THIS METHOD EXECUTES A QUERY WHICH RETURNS NOTHING, JUST TRUE IF
-		// EVERYTHING'S OKAY.
+		// EVERYTHING'S OKAY. TURNED VOID BUT CONTROLING ERROR WITH EXCEPTIONS
 		try {
 			insertValuesIntoQuery();
 		} catch (SQLException | QueryException e) {
