@@ -7,7 +7,9 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.acuevas.marvel.exceptions.DBException;
 import com.acuevas.marvel.exceptions.DBException.DBErrors;
@@ -132,17 +134,56 @@ public class MarvelDAO {
 		});
 	}
 
-	/*
-	 * public void register(User user) { executeQuery(() -> { QueryBuilder query =
-	 * new QueryBuilder(); query.insertInto(DBTable.User, user); }); }
+	// TODO TEST
+	public void register(User user) throws DBException, SQLException {
+		executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			query.insertInto(DBTable.User, getPropertiesListed(user));
+			return null; // Interface MyRunable returns T so I need to return something.
+		});
+	}
+
+	public User getUserByKey(String username) throws DBException, SQLException {
+		return (User) executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.User).where(DBColumn.username, username);
+			ResultSet resultSet = query.executeQuery();
+
+			return null;
+		});
+	}
+
+	/**
+	 * This method asks the DB for a UserTO with only username&password to check if
+	 * they match with the login provided by the user.
 	 */
+	public User getUserTOByKey(String username) {
+		return (User) executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.User).where(DBColumn.username, username);
+			ResultSet resultSet = query.executeQuery();
+
+			return null;
+		});
+	}
+
 	// TODO THIS
 	/**
+	 * Gets the properties of an instance of User and stores them into a map linking
+	 * the property with the column of the DB
 	 * 
+	 * @param user User
+	 * @return a Map where the key is the column of the DB and the value its value.
 	 */
-	public List<Object> getPropertiesListed(User user) {
-		List<Object> userProperties = new ArrayList();
-		return null;
+	public Map<DBColumn, Object> getPropertiesListed(User user) {
+		Map<DBColumn, Object> userProperties = new HashMap<>();
+		userProperties.put(DBColumn.username, user.getUsername());
+		userProperties.put(DBColumn.pass, user.getPassword());
+		userProperties.put(DBColumn.level, user.getLevel());
+		userProperties.put(DBColumn.superhero, user.getSuperhero().getName());
+		userProperties.put(DBColumn.place, user.getPlace());
+		userProperties.put(DBColumn.points, user.getPoints());
+		return userProperties;
 	}
 
 	/**

@@ -5,7 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import com.acuevas.marvel.lib.DBTable.DBColumn;
 import com.acuevas.marvel.lib.exceptions.QueryException;
@@ -31,8 +33,10 @@ public class QueryBuilder {
 		connection = MarvelDAO.getInstance().getConnection();
 	}
 
-	public boolean insertInto(DBTable dbTable, List<Object> values) throws SQLException, QueryException {
+	public boolean insertInto(DBTable dbTable, Map<DBColumn, Object> columnValue) throws SQLException, QueryException {
+		// TODO do insert with columns instead of index
 		query.concat("insert into " + dbTable.name() + " values (");
+		Collection<Object> values = columnValue.values();
 		values.forEach(value -> query.concat("?,"));
 		query.substring(query.lastIndexOf(",")).replace(",", ")");
 		return executeUpdate();
@@ -127,6 +131,15 @@ public class QueryBuilder {
 
 	public QueryBuilder select(DBColumn column) {
 		query += ("select " + column.name() + " ");
+		return this;
+	}
+
+	public QueryBuilder select(List<DBColumn> columns) {
+		query += "select";
+		columns.forEach(column -> {
+			query += (column.name() + ", ");
+		});
+		query.substring(query.lastIndexOf(",")).replace(",", "");
 		return this;
 	}
 
