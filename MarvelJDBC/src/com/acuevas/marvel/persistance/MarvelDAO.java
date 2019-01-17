@@ -156,14 +156,17 @@ public class MarvelDAO {
 	/**
 	 * This method asks the DB for a UserTO with only username&password to check if
 	 * they match with the login provided by the user.
+	 * 
+	 * @throws SQLException
+	 * @throws DBException
 	 */
-	public User getUserTOByKey(String username) {
+	public User getUserTOByKey(String username) throws DBException, SQLException {
 		return (User) executeQuery(() -> {
 			QueryBuilder query = new QueryBuilder();
 			query.select().from(DBTable.User).where(DBColumn.username, username);
 			ResultSet resultSet = query.executeQuery();
-
-			return null;
+			return new User(resultSet.getString(DBColumn.username.toString()),
+					resultSet.getString(DBColumn.pass.toString()));
 		});
 	}
 

@@ -10,6 +10,17 @@ public class User extends Owner {
 	private int points;
 
 	/**
+	 * TO Constructor
+	 * 
+	 * @param username
+	 * @param password
+	 */
+	public User(String username, String password) {
+		this.username = username;
+		this.password = password;
+	}
+
+	/**
 	 * @return the username
 	 */
 	public String getUsername() {
