@@ -4,7 +4,7 @@ package com.acuevas.marvel.exceptions;
 public class DBException extends Exception {
 
 	public enum DBErrors {
-		DOESNT_EXIST("The object requested doesn't exist in the database.", 1);
+		DOESNT_EXIST("The object requested doesn't exist in the database.", 100);
 		private String message;
 		private int code;
 
@@ -22,6 +22,7 @@ public class DBException extends Exception {
 		this.errorCode = error.code;
 	}
 
+	// TODO DOC THIS ERROR CODE IS FROM ANOTHER EXCEPTION, NOT DBEXCEPTION
 	public DBException(Exception e) {
 		super(e);
 		if (e.getClass().equals(DBException.class))

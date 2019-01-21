@@ -100,10 +100,12 @@ public class MarvelDAO {
 			String superpower = null;
 			String name2 = null;
 			if (resultSet.next()) {
-				name2 = resultSet.getString("name"); // Getting the name again because the user my input it in
-														// underCase and it's still valid for the DB.
-														// Ex: User input: superjava Real name: SuperJava
-				superpower = resultSet.getString("superpower");
+				name2 = resultSet.getString(DBColumn.name.toString());
+				// Getting the name again because the user may input it in
+				// underCase and it's still valid for the DB.
+				// Ex: User input: superjava Real name: SuperJava
+				// Must be a new variable (name2) because of the different enclosing space.
+				superpower = resultSet.getString(DBColumn.superpower.toString());
 			} else
 				throw new DBException(DBErrors.DOESNT_EXIST);
 			return new SuperHero(name2, superpower);
@@ -124,10 +126,10 @@ public class MarvelDAO {
 
 	// TODO get place by name and get superhero
 	// TODO TEST
-	public boolean isRegistered(User user) throws DBException, SQLException {
+	public boolean isRegistered(String username) throws DBException, SQLException {
 		return (boolean) executeQuery(() -> {
 			QueryBuilder query = new QueryBuilder();
-			query.select().from(DBTable.User).where(DBColumn.username, user.getUsername());
+			query.select().from(DBTable.User).where(DBColumn.username, username);
 			ResultSet resultSet = query.executeQuery();
 
 			return resultSet.next();

@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.acuevas.marvel.exceptions.DBException;
 import com.acuevas.marvel.lib.DBTable.DBColumn;
 import com.acuevas.marvel.lib.exceptions.QueryException;
 import com.acuevas.marvel.lib.exceptions.QueryException.QueryError;
@@ -33,13 +34,14 @@ public class QueryBuilder {
 		connection = MarvelDAO.getInstance().getConnection();
 	}
 
-	public boolean insertInto(DBTable dbTable, Map<DBColumn, Object> columnValue) throws SQLException, QueryException {
+	public void insertInto(DBTable dbTable, Map<DBColumn, Object> columnValue)
+			throws SQLException, QueryException, DBException {
 		// TODO do insert with columns instead of index
 		query.concat("insert into " + dbTable.name() + " values (");
 		Collection<Object> values = columnValue.values();
 		values.forEach(value -> query.concat("?,"));
 		query.substring(query.lastIndexOf(",")).replace(",", ")");
-		return executeUpdate();
+		executeUpdate();
 	}
 
 	public ResultSet executeQuery() {
@@ -54,7 +56,7 @@ public class QueryBuilder {
 		return null;
 	}
 
-	private void executeUpdate() thorws DBException, SQLException {
+	private void executeUpdate() throws DBException, SQLException {
 		// TODO THIS METHOD EXECUTES A QUERY WHICH RETURNS NOTHING, JUST TRUE IF
 		// EVERYTHING'S OKAY. TURNED VOID BUT CONTROLING ERROR WITH EXCEPTIONS
 		try {
@@ -63,7 +65,6 @@ public class QueryBuilder {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return false;
 	}
 
 	private void insertValuesIntoQuery() throws SQLException, QueryException {

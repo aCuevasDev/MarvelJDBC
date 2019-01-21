@@ -6,7 +6,7 @@ public class User extends Owner {
 	private String password;
 	private SuperHero superhero;
 	private int level;
-	private String place;
+	private Place place;
 	private int points;
 
 	/**
@@ -63,20 +63,6 @@ public class User extends Owner {
 	}
 
 	/**
-	 * @return the place
-	 */
-	public String getPlace() {
-		return place;
-	}
-
-	/**
-	 * @param place the place to set
-	 */
-	public void setPlace(String place) {
-		this.place = place;
-	}
-
-	/**
 	 * @return the points
 	 */
 	public int getPoints() {
@@ -102,6 +88,20 @@ public class User extends Owner {
 	 */
 	public void setLevel(int level) {
 		this.level = level;
+	}
+
+	/**
+	 * @return the place
+	 */
+	public Place getPlace() {
+		return place;
+	}
+
+	/**
+	 * @param place the place to set
+	 */
+	public void setPlace(Place place) {
+		this.place = place;
 	}
 
 }

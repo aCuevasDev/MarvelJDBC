@@ -5,18 +5,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import com.acuevas.marvel.exceptions.CommandException;
+import com.acuevas.marvel.exceptions.CommandException.CommandErrors;
 import com.acuevas.marvel.exceptions.DBException;
 import com.acuevas.marvel.lib.DBTable;
-import com.acuevas.marvel.lib.QueryBuilder;
 import com.acuevas.marvel.lib.DBTable.DBColumn;
+import com.acuevas.marvel.lib.QueryBuilder;
 import com.acuevas.marvel.model.Attack;
 import com.acuevas.marvel.model.Attack.Type;
 import com.acuevas.marvel.model.SuperHero;
+import com.acuevas.marvel.model.User;
 import com.acuevas.marvel.persistance.MarvelDAO;
 
 public class Manager {
 	// IMPORTANT NOTE: MySql-ConnectorJ Drivers are v.5.1.47, more updated versions
 	// give problems.
+
+	private User loggedInUser;
 
 	public static void main(String[] args) {
 		List<Type> types = Arrays.asList(Type.values());
@@ -47,6 +52,53 @@ public class Manager {
 			e.printStackTrace();
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}
+	}
+
+	public void commandArguments(int argumentsLine, int commandArgumentsNumber) throws CommandException {
+		if (argumentsLine < commandArgumentsNumber || argumentsLine > commandArgumentsNumber)
+			throw new CommandException(CommandErrors.INCORRECT_NUM_ARGUMENTS);
+	}
+
+	// TODO THROWS HERE? maybe use db exception and just throw command here
+	public void logIn(String username, String password) throws DBException, SQLException, CommandException {
+		boolean incorrect = false;
+		if (MarvelDAO.getInstance().isRegistered(username)) {
+			User user = MarvelDAO.getInstance().getUserTOByKey(username);
+			if (user.getPassword().equals(password))
+				loggedInUser = user;
+			else
+				incorrect = true;
+		} else {
+			incorrect = true;
+		}
+
+		if (incorrect)
+			throw new CommandException(CommandErrors.USER_OR_PSWRD_INCORRECT);
+	}
+
+	private checkDirectionsAvaliable() {
+		loggedInUser.getPlace()
+	}
+
+	private void move(char c) throws CommandException {
+		switch (c) {
+		case 'n':
+		case 'N':
+
+			break;
+		case 's':
+		case 'S':
+			break;
+		case 'e':
+		case 'E':
+			break;
+		case 'w':
+		case 'W':
+			break;
+
+		default:
+			throw new CommandException(CommandErrors.WRONG_DIRECTION);
 		}
 	}
 }
