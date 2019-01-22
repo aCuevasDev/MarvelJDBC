@@ -13,6 +13,7 @@ import com.acuevas.marvel.lib.DBTable.DBColumn;
 import com.acuevas.marvel.lib.QueryBuilder;
 import com.acuevas.marvel.model.Attack;
 import com.acuevas.marvel.model.Attack.Type;
+import com.acuevas.marvel.model.Place;
 import com.acuevas.marvel.model.SuperHero;
 import com.acuevas.marvel.model.User;
 import com.acuevas.marvel.persistance.MarvelDAO;
@@ -24,35 +25,36 @@ public class Manager {
 	private User loggedInUser;
 
 	public static void main(String[] args) {
-		List<Type> types = Arrays.asList(Type.values());
-		int random = new Random().nextInt(types.size());
-		int random2 = new Random().nextInt(types.size());
 
-		Attack attack1 = new Attack(types.get(random));
-		Attack attack2 = new Attack(types.get(random2));
-		System.out.println(attack1.getType());
-		System.out.println(attack2.getType());
-		System.out.println(attack1.compareTo(attack2));
+		Place place = new Place("test", "testDesc", "Asgard", "Midgard", null, null);
+		place.directionsAvaliable().forEach(direction -> System.out.println(direction));
 
-		try {
-			SuperHero hero = MarvelDAO.getInstance().findHero("superjava");
-			System.out.println(hero.getName());
-			System.out.println(hero.getSuperpower());
-			MarvelDAO.getInstance().toString();
-
-			List<String> list = MarvelDAO.getInstance().getColumnNames("gem");
-
-//			list.forEach(System.out::println);
-
-			QueryBuilder query = new QueryBuilder();
-
-			query.select(DBColumn.name).from(DBTable.Gem).where(DBColumn.name, "Mind Gem");
-
-		} catch (DBException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		/*
+		 * List<Type> types = Arrays.asList(Type.values()); int random = new
+		 * Random().nextInt(types.size()); int random2 = new
+		 * Random().nextInt(types.size());
+		 * 
+		 * Attack attack1 = new Attack(types.get(random)); Attack attack2 = new
+		 * Attack(types.get(random2)); System.out.println(attack1.getType());
+		 * System.out.println(attack2.getType());
+		 * System.out.println(attack1.compareTo(attack2));
+		 * 
+		 * try { SuperHero hero = MarvelDAO.getInstance().findHero("superjava");
+		 * System.out.println(hero.getName()); System.out.println(hero.getSuperpower());
+		 * MarvelDAO.getInstance().toString();
+		 * 
+		 * List<String> list = MarvelDAO.getInstance().getColumnNames("gem");
+		 * 
+		 * // list.forEach(System.out::println);
+		 * 
+		 * QueryBuilder query = new QueryBuilder();
+		 * 
+		 * query.select(DBColumn.name).from(DBTable.Gem).where(DBColumn.name,
+		 * "Mind Gem");
+		 * 
+		 * } catch (DBException e) { e.printStackTrace(); } catch (SQLException e) {
+		 * e.printStackTrace(); }
+		 */
 	}
 
 	public void commandArguments(int argumentsLine, int commandArgumentsNumber) throws CommandException {
@@ -81,24 +83,4 @@ public class Manager {
 		loggedInUser.getPlace()
 	}
 
-	private void move(char c) throws CommandException {
-		switch (c) {
-		case 'n':
-		case 'N':
-
-			break;
-		case 's':
-		case 'S':
-			break;
-		case 'e':
-		case 'E':
-			break;
-		case 'w':
-		case 'W':
-			break;
-
-		default:
-			throw new CommandException(CommandErrors.WRONG_DIRECTION);
-		}
-	}
 }

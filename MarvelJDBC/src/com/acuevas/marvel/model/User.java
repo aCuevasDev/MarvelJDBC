@@ -1,12 +1,15 @@
 package com.acuevas.marvel.model;
 
+import com.acuevas.marvel.exceptions.CommandException;
+import com.acuevas.marvel.exceptions.CommandException.CommandErrors;
+import com.acuevas.marvel.model.Place.directionsEnum;
+import com.acuevas.marvel.persistance.MarvelDAO;
+
 public class User extends Owner {
 
 	private String username;
 	private String password;
 	private SuperHero superhero;
-	private int level;
-	private Place place;
 	private int points;
 
 	/**
@@ -18,6 +21,29 @@ public class User extends Owner {
 	public User(String username, String password) {
 		this.username = username;
 		this.password = password;
+	}
+
+	public void move(String direction) throws CommandException {
+		Place newPlace;
+		switch (direction.substring(0, 1).toUpperCase()) {
+		case "N":
+			newPlace = MarvelDAO.getInstance().getPlaceByKey(place.getDirection(directionsEnum.north));
+			break;
+		case "S":
+			newPlace = MarvelDAO.getInstance().getPlaceByKey(place.getDirection(directionsEnum.south));
+			break;
+		case "E":
+			newPlace = MarvelDAO.getInstance().getPlaceByKey(place.getDirection(directionsEnum.east));
+			break;
+		case "W":
+			newPlace = MarvelDAO.getInstance().getPlaceByKey(place.getDirection(directionsEnum.west));
+			break;
+
+		default:
+			throw new CommandException(CommandErrors.WRONG_COMMAND);
+		}
+
+		place = newPlace;
 	}
 
 	/**
@@ -75,33 +101,4 @@ public class User extends Owner {
 	public void setPoints(int points) {
 		this.points = points;
 	}
-
-	/**
-	 * @return the level
-	 */
-	public int getLevel() {
-		return level;
-	}
-
-	/**
-	 * @param level the level to set
-	 */
-	public void setLevel(int level) {
-		this.level = level;
-	}
-
-	/**
-	 * @return the place
-	 */
-	public Place getPlace() {
-		return place;
-	}
-
-	/**
-	 * @param place the place to set
-	 */
-	public void setPlace(Place place) {
-		this.place = place;
-	}
-
 }

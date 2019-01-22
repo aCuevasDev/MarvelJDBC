@@ -17,6 +17,8 @@ import com.acuevas.marvel.lib.DBTable;
 import com.acuevas.marvel.lib.DBTable.DBColumn;
 import com.acuevas.marvel.lib.MyRunnable;
 import com.acuevas.marvel.lib.QueryBuilder;
+import com.acuevas.marvel.model.GemTO;
+import com.acuevas.marvel.model.Place;
 import com.acuevas.marvel.model.SuperHero;
 import com.acuevas.marvel.model.User;
 import com.mysql.jdbc.PreparedStatement;
@@ -254,6 +256,16 @@ public class MarvelDAO {
 	 */
 	public Connection getConnection() {
 		return connection;
+	}
+
+	public Place getPlaceByKey(String direction) {
+		// TODO this method
+		return null;
+	}
+
+	public void updateGem(GemTO gem) {
+		// TODO this method
+
 	}
 
 }

@@ -1,18 +1,19 @@
 package com.acuevas.marvel.model;
 
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class Place {
 
-	private enum directionsEnum {
+	public enum directionsEnum {
 		north, south, east, west;
 	}
 
 	private String name;
 	private String description;
 
-	private Map<directionsEnum, String> directions;
+	private Map<directionsEnum, String> directions = new LinkedHashMap<>();
 
 	/**
 	 * @param name
@@ -27,14 +28,28 @@ public class Place {
 		this.description = description;
 
 		if (directionAvaliable(north))
-			directions.put(directionsEnum.north, north);
+			getDirections().put(directionsEnum.north, north);
 		if (directionAvaliable(south))
-			directions.put(directionsEnum.south, south);
+			getDirections().put(directionsEnum.south, south);
 		if (directionAvaliable(east))
-			directions.put(directionsEnum.east, south);
+			getDirections().put(directionsEnum.east, south);
 		if (directionAvaliable(west))
-			directions.put(directionsEnum.west, west);
+			getDirections().put(directionsEnum.west, west);
 
+	}
+
+	public String getDirection(directionsEnum directionEnum) {
+		return directions.get(directionEnum);
+	}
+
+	public Set<directionsEnum> directionsAvaliable() {
+		return getDirections().keySet();
+	}
+
+	private boolean directionAvaliable(String direction) {
+		if (direction != null)
+			return true;
+		return false;
 	}
 
 	/**
@@ -51,14 +66,18 @@ public class Place {
 		return name;
 	}
 
-	public List<Character> directionsAvaliable() {
-		if ()
-		return null;
+	/**
+	 * @return the directions
+	 */
+	public Map<directionsEnum, String> getDirections() {
+		return directions;
 	}
 
-	private boolean directionAvaliable(String direction) {
-		if (direction != null)
-			return true;
-		return false;
+	/**
+	 * @param directions the directions to set
+	 */
+	public void setDirections(Map<directionsEnum, String> directions) {
+		this.directions = directions;
 	}
+
 }

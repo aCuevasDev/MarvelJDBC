@@ -1,5 +1,7 @@
 package com.acuevas.marvel.model;
 
-public class Villain {
+public class Villain extends Owner {
+
+	private String name;
 
 }
