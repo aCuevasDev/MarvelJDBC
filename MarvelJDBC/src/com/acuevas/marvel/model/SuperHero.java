@@ -10,6 +10,16 @@ public class SuperHero {
 		this.superpower = superpower;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "SuperHero [name=" + name + ", superpower=" + superpower + "]";
+	}
+
 	/**
 	 * @return the name
 	 */

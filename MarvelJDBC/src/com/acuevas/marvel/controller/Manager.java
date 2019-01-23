@@ -117,9 +117,10 @@ public class Manager {
 
 	}
 
-	private void viewHeros() {
-		// TODO Auto-generated method stub
-
+	private void viewHeros() throws SQLException {
+		MarvelDAO.getInstance().findAllHeroes().forEach(hero -> {
+			View.printMessage(hero.toString());
+		});
 	}
 
 	public void commandArguments(String[] line, int commandArgumentsNumber) throws CommandException {
