@@ -124,12 +124,12 @@ public class Battle {
 		int turn = 0;
 
 		// TODO TRY IT WITHOUT BRACKETS
-		while (whoHasLowestLevel().owner.level <= turn++) {
+		while (whoHasLowestLevel().owner.level >= turn++) {
 			fightTurn(turn);
 		}
 
 		if (whoHasMaxLevel() != null) {
-			while (whoHasMaxLevel().owner.level <= turn++) {
+			while (whoHasMaxLevel().owner.level >= turn++) {
 				if (getWinner() != whoHasMaxLevel()) {
 					fightTurn(turn);
 				}

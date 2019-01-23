@@ -23,10 +23,17 @@ public class User extends Owner {
 		this.password = password;
 	}
 
-	public User(String username, String password, SuperHero superhero) {
+//	public User(String username, String password, SuperHero superhero) {
+//		this.username = username;
+//		this.password = password;
+//		this.superhero = superhero;
+//	}
+
+	public User(String username, String password, SuperHero hero, Place place) {
 		this.username = username;
 		this.password = password;
-		this.superhero = superhero;
+		this.superhero = hero;
+		this.place = place;
 	}
 
 	public void move(String direction) throws CommandException {

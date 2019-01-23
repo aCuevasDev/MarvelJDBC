@@ -81,6 +81,27 @@ public class MarvelDAO {
 			connection.close();
 	}
 
+	@SuppressWarnings("unchecked")
+	public List<SuperHero> findAllHeroes() throws SQLException {
+		try {
+			return (List<SuperHero>) executeQuery(() -> {
+				List<SuperHero> superHeroes = new ArrayList<>();
+				QueryBuilder query = new QueryBuilder();
+				query.select().from(DBTable.Superhero);
+				ResultSet resultSet = query.executeQuery();
+				while (resultSet.next()) {
+					String name = resultSet.getString(DBColumn.name.toString());
+					String superpower = resultSet.getString(DBColumn.superpower.toString());
+					superHeroes.add(new SuperHero(name, superpower));
+				}
+				return superHeroes;
+			});
+		} catch (DBException e) {
+			View.printError(e.getMessage());
+		}
+		return null;
+	}
+
 	/**
 	 * Gets a Hero instance with the specified name from the DB.
 	 * 
@@ -126,7 +147,7 @@ public class MarvelDAO {
 				values.add(user.getPassword());
 				values.add(user.getLevel());
 				values.add(user.getSuperhero().getName());
-				values.add("New York");
+				values.add(user.getPlace().getName());
 				values.add(user.getPoints());
 
 				query.insertInto(DBTable.User, values);
@@ -294,8 +315,33 @@ public class MarvelDAO {
 		return connection;
 	}
 
-	public Place getPlaceByKey(String direction) {
-		// TODO this method
+	/**
+	 * Gets the place from DB using the primary key
+	 * 
+	 * @param direction
+	 * @return ... Place
+	 * @throws SQLException
+	 */
+	public Place getPlaceByKey(String name) throws SQLException {
+		try {
+			return (Place) executeQuery(() -> {
+				QueryBuilder query = new QueryBuilder();
+				query.select().from(DBTable.Place).where(DBColumn.name, name);
+				ResultSet resultSet = query.executeQuery();
+				if (resultSet.next()) {
+					String name2 = resultSet.getString(DBColumn.name.toString());
+					String description = resultSet.getString(DBColumn.description.toString());
+					String north = resultSet.getString(DBColumn.north.toString());
+					String south = resultSet.getString(DBColumn.south.toString());
+					String east = resultSet.getString(DBColumn.east.toString());
+					String west = resultSet.getString(DBColumn.west.toString());
+					return new Place(name, description, north, south, east, west);
+				} else
+					throw new DBException(DBErrors.DOESNT_EXIST);
+			});
+		} catch (DBException e) {
+			View.printError(e.getMessage());
+		}
 		return null;
 	}
 
@@ -316,8 +362,7 @@ public class MarvelDAO {
 				return null;
 			});
 		} catch (DBException e) {
-			e.printStackTrace();
-			// TODO SHOW ERROR MESSAGE
+			View.printError(e.getMessage());
 		}
 	}
 

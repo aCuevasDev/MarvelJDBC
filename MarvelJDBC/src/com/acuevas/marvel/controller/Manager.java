@@ -4,6 +4,7 @@ import java.sql.SQLException;
 
 import com.acuevas.marvel.exceptions.CommandException;
 import com.acuevas.marvel.exceptions.CommandException.CommandErrors;
+import com.acuevas.marvel.model.Place;
 import com.acuevas.marvel.model.SuperHero;
 import com.acuevas.marvel.model.User;
 import com.acuevas.marvel.persistance.MarvelDAO;
@@ -19,6 +20,8 @@ public class Manager {
 	private User loggedInUser;
 
 	public static void main(String[] args) {
+
+		// TODO AN ENEMY MUST PICKUP GEMS IN A PLACE WITHOUT OWNER
 
 		SuperHero hero;
 		try {
@@ -83,22 +86,40 @@ public class Manager {
 		String[] lineArray = line.split(" ");
 	}
 
-	private void readCommand(String[] line) throws CommandException {
-		String letter = line[0];
-		switch (letter.toUpperCase()) {
-		case "L":
-			commandArguments(line, Commands.LOGIN.getMaxArguments());
-			break;
-		case "R":
-			break;
+	private void readCommand(String[] line) throws CommandException, SQLException {
+		try {
+			String letter = line[0];
+			switch (letter.toUpperCase()) {
+			case "L":
+				commandArguments(line, Commands.LOGIN.getMaxArguments());
+				logIn(line[1], line[2]);
+				break;
+			case "R":
+				commandArguments(line, Commands.REGISTER.getMaxArguments());
+				registerUser(line[1], line[2], line[3]);
+				break;
 
-		case "X":
-			View.printMessage(ViewMessage.GOODBYE);
-			break;
+			case "V":
+				commandArguments(line, Commands.VIEW_HEROS.getMaxArguments());
+				viewHeros();
+				break;
 
-		default:
-			break;
+			case "X":
+				View.printMessage(ViewMessage.GOODBYE);
+				break;
+
+			default:
+				break;
+			}
+		} catch (CommandException e) {
+			View.printError(e.getMessage());
 		}
+
+	}
+
+	private void viewHeros() {
+		// TODO Auto-generated method stub
+
 	}
 
 	public void commandArguments(String[] line, int commandArgumentsNumber) throws CommandException {
@@ -122,6 +143,13 @@ public class Manager {
 
 		if (incorrect)
 			throw new CommandException(CommandErrors.USER_OR_PSWRD_INCORRECT);
+	}
+
+	public void registerUser(String username, String password, String superhero) throws SQLException {
+		SuperHero hero = MarvelDAO.getInstance().findHero(superhero);
+		Place place = MarvelDAO.getInstance().getPlaceByKey("New York");
+		User newUser = new User(username, password, hero, place);
+		MarvelDAO.getInstance().insert(newUser);
 	}
 
 	/**
