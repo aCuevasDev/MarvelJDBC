@@ -4,10 +4,13 @@ import java.sql.SQLException;
 
 import com.acuevas.marvel.exceptions.CommandException;
 import com.acuevas.marvel.exceptions.CommandException.CommandErrors;
-import com.acuevas.marvel.exceptions.DBException;
 import com.acuevas.marvel.model.SuperHero;
 import com.acuevas.marvel.model.User;
 import com.acuevas.marvel.persistance.MarvelDAO;
+import com.acuevas.marvel.util.Commands;
+import com.acuevas.marvel.view.View;
+import com.acuevas.marvel.view.View.ViewError;
+import com.acuevas.marvel.view.View.ViewMessage;
 
 public class Manager {
 	// IMPORTANT NOTE: MySql-ConnectorJ Drivers are v.5.1.47, more updated versions
@@ -23,9 +26,10 @@ public class Manager {
 			User user = new User("AlexTest", "AlexPass", hero);
 			MarvelDAO.getInstance().insert(user);
 
-		} catch (DBException | SQLException e) {
-			// TODO Auto-generated catch block
-			System.out.println(e.getMessage());
+		} catch (SQLException e) {
+			View.printError(ViewError.CRITICAL_ERROR);
+			View.printError(e.getMessage());
+			View.printMessage(ViewMessage.GOODBYE);
 		}
 
 		/*
@@ -75,13 +79,36 @@ public class Manager {
 		 */
 	}
 
-	public void commandArguments(int argumentsLine, int commandArgumentsNumber) throws CommandException {
+	private void splitLine(String line) {
+		String[] lineArray = line.split(" ");
+	}
+
+	private void readCommand(String[] line) throws CommandException {
+		String letter = line[0];
+		switch (letter.toUpperCase()) {
+		case "L":
+			commandArguments(line, Commands.LOGIN.getMaxArguments());
+			break;
+		case "R":
+			break;
+
+		case "X":
+			View.printMessage(ViewMessage.GOODBYE);
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	public void commandArguments(String[] line, int commandArgumentsNumber) throws CommandException {
+		int argumentsLine = line.length;
 		if (argumentsLine < commandArgumentsNumber || argumentsLine > commandArgumentsNumber)
 			throw new CommandException(CommandErrors.INCORRECT_NUM_ARGUMENTS);
 	}
 
 	// TODO THROWS HERE? maybe use db exception and just throw command here
-	public void logIn(String username, String password) throws DBException, SQLException, CommandException {
+	public void logIn(String username, String password) throws SQLException, CommandException {
 		boolean incorrect = false;
 		if (MarvelDAO.getInstance().isRegistered(username)) {
 			User user = MarvelDAO.getInstance().getUserTOByKey(username);

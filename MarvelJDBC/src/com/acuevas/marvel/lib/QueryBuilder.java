@@ -48,14 +48,14 @@ public class QueryBuilder {
 	 * @throws QueryException
 	 * @throws DBException
 	 */
-	public QueryBuilder insertInto(DBTable dbTable, List<Object> values) throws SQLException, QueryException {
+	public void insertInto(DBTable dbTable, List<Object> values) throws SQLException, QueryException {
 		// TODO do insert with columns instead of index
 		query += ("insert into " + dbTable.name() + " values (");
 		comparators.addAll(values);
-		values.forEach(value -> query += ("?,"));
+		values.forEach(value -> query += (" ? ,"));
 		checkEnding(true);
 		insertValuesIntoQuery();
-		return this;
+		preparedStatement.executeUpdate();
 	}
 
 	/**
@@ -108,7 +108,7 @@ public class QueryBuilder {
 	}
 
 	/**
-	 * Executes the query to update/insert the table.
+	 * Executes the query to update the table.
 	 * 
 	 * @param columnValue
 	 * @throws SQLException

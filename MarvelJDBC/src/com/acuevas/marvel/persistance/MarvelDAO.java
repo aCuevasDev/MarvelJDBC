@@ -21,6 +21,7 @@ import com.acuevas.marvel.model.GemTO;
 import com.acuevas.marvel.model.Place;
 import com.acuevas.marvel.model.SuperHero;
 import com.acuevas.marvel.model.User;
+import com.acuevas.marvel.view.View;
 import com.mysql.jdbc.StatementImpl;
 
 /**
@@ -89,26 +90,30 @@ public class MarvelDAO {
 	 * @throws SQLException Database access error
 	 * @throws DBException  if the name given doesn't exist in the DB
 	 */
-	public SuperHero findHero(String name) throws DBException, SQLException {
+	public SuperHero findHero(String name) throws SQLException {
 
-		return (SuperHero) executeQuery(() -> {
-			QueryBuilder query = new QueryBuilder();
-			query.select().from(DBTable.Superhero).where(DBColumn.name, name);
-			ResultSet resultSet = query.executeQuery();
-			String superpower = null;
-			String name2 = null;
-			if (resultSet.next()) {
-				name2 = resultSet.getString(DBColumn.name.toString());
-				// Getting the name again because the user may input it in
-				// underCase and it's still valid for the DB.
-				// Ex: User input: superjava Real name: SuperJava
-				// Must be a new variable (name2) because of the different enclosing space.
-				superpower = resultSet.getString(DBColumn.superpower.toString());
-			} else
-				throw new DBException(DBErrors.DOESNT_EXIST);
-			return new SuperHero(name2, superpower);
-		});
-
+		try {
+			return (SuperHero) executeQuery(() -> {
+				QueryBuilder query = new QueryBuilder();
+				query.select().from(DBTable.Superhero).where(DBColumn.name, name);
+				ResultSet resultSet = query.executeQuery();
+				String superpower = null;
+				String name2 = null;
+				if (resultSet.next()) {
+					name2 = resultSet.getString(DBColumn.name.toString());
+					// Getting the name again because the user may input it in
+					// underCase and it's still valid for the DB.
+					// Ex: User input: superjava Real name: SuperJava
+					// Must be a new variable (name2) because of the different enclosing space.
+					superpower = resultSet.getString(DBColumn.superpower.toString());
+				} else
+					throw new DBException(DBErrors.DOESNT_EXIST);
+				return new SuperHero(name2, superpower);
+			});
+		} catch (DBException e) {
+			View.printError(e.getMessage());
+		}
+		return null;
 	}
 
 	public void insert(User user) throws SQLException {
@@ -124,12 +129,11 @@ public class MarvelDAO {
 				values.add("New York");
 				values.add(user.getPoints());
 
-				query.insertInto(DBTable.User, values).executeUpdate();
+				query.insertInto(DBTable.User, values);
 				return null;
 			});
 		} catch (DBException e) {
-			e.printStackTrace();
-			// TODO SHOW ERROR
+			View.printError(e.getMessage());
 		}
 	}
 
@@ -146,14 +150,19 @@ public class MarvelDAO {
 
 	// TODO get place by name and get superhero
 	// TODO TEST
-	public boolean isRegistered(String username) throws DBException, SQLException {
-		return (boolean) executeQuery(() -> {
-			QueryBuilder query = new QueryBuilder();
-			query.select().from(DBTable.User).where(DBColumn.username, username);
-			ResultSet resultSet = query.executeQuery();
+	public Boolean isRegistered(String username) throws SQLException {
+		try {
+			return (boolean) executeQuery(() -> {
+				QueryBuilder query = new QueryBuilder();
+				query.select().from(DBTable.User).where(DBColumn.username, username);
+				ResultSet resultSet = query.executeQuery();
 
-			return resultSet.next();
-		});
+				return resultSet.next();
+			});
+		} catch (DBException e) {
+			View.printError(e.getMessage());
+		}
+		return null;
 	}
 
 //	// TODO TEST
@@ -165,14 +174,19 @@ public class MarvelDAO {
 //		});
 //	}
 
-	public User getUserByKey(String username) throws DBException, SQLException {
-		return (User) executeQuery(() -> {
-			QueryBuilder query = new QueryBuilder();
-			query.select().from(DBTable.User).where(DBColumn.username, username);
-			ResultSet resultSet = query.executeQuery();
+	public User getUserByKey(String username) throws SQLException {
+		try {
+			return (User) executeQuery(() -> {
+				QueryBuilder query = new QueryBuilder();
+				query.select().from(DBTable.User).where(DBColumn.username, username);
+				ResultSet resultSet = query.executeQuery();
 
-			return null;
-		});
+				return null;
+			});
+		} catch (DBException e) {
+			View.printError(e.getMessage());
+		}
+		return null;
 	}
 
 	/**
@@ -182,15 +196,21 @@ public class MarvelDAO {
 	 * @throws SQLException
 	 * @throws DBException
 	 */
-	public User getUserTOByKey(String username) throws DBException, SQLException {
-		return (User) executeQuery(() -> {
-			QueryBuilder query = new QueryBuilder();
-			query.select().from(DBTable.User).where(DBColumn.username, username);
-			ResultSet resultSet = query.executeQuery();
-			resultSet.next();
-			return new User(resultSet.getString(DBColumn.username.toString()),
-					resultSet.getString(DBColumn.pass.toString()));
-		});
+	public User getUserTOByKey(String username) throws SQLException {
+		try {
+			return (User) executeQuery(() -> {
+				QueryBuilder query = new QueryBuilder();
+				query.select().from(DBTable.User).where(DBColumn.username, username);
+				ResultSet resultSet = query.executeQuery();
+				resultSet.next();
+				return new User(resultSet.getString(DBColumn.username.toString()),
+						resultSet.getString(DBColumn.pass.toString()));
+			});
+
+		} catch (DBException e) {
+			View.printError(e.getMessage());
+		}
+		return null;
 	}
 
 	// TODO THIS
