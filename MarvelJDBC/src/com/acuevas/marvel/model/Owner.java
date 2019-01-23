@@ -13,7 +13,6 @@ public abstract class Owner {
 	protected int level;
 	protected Place place;
 	protected List<GemTO> gems = new ArrayList<>();
-	private List<Attack> storedAttacks = new ArrayList<>();
 
 	public Attack attack() {
 		List<Type> types = Arrays.asList(Type.values());
@@ -72,21 +71,4 @@ public abstract class Owner {
 		this.level = level;
 	}
 
-	/**
-	 * @return the storedAttacks
-	 */
-	public List<Attack> getStoredAttacks() {
-		return storedAttacks;
-	}
-
-	/**
-	 * @param storedAttacks the storedAttacks to set
-	 */
-	public void setStoredAttacks(List<Attack> storedAttacks) {
-		this.storedAttacks = storedAttacks;
-	}
-
-	public void clearStoredAttacks() {
-		storedAttacks.clear();
-	}
 }

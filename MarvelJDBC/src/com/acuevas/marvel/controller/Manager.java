@@ -1,20 +1,11 @@
 package com.acuevas.marvel.controller;
 
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
 
 import com.acuevas.marvel.exceptions.CommandException;
 import com.acuevas.marvel.exceptions.CommandException.CommandErrors;
 import com.acuevas.marvel.exceptions.DBException;
-import com.acuevas.marvel.lib.DBTable;
-import com.acuevas.marvel.lib.DBTable.DBColumn;
-import com.acuevas.marvel.lib.QueryBuilder;
-import com.acuevas.marvel.model.Attack;
-import com.acuevas.marvel.model.Attack.Type;
 import com.acuevas.marvel.model.Place;
-import com.acuevas.marvel.model.SuperHero;
 import com.acuevas.marvel.model.User;
 import com.acuevas.marvel.persistance.MarvelDAO;
 
@@ -79,8 +70,15 @@ public class Manager {
 			throw new CommandException(CommandErrors.USER_OR_PSWRD_INCORRECT);
 	}
 
-	private checkDirectionsAvaliable() {
-		loggedInUser.getPlace()
+	/**
+	 * @return the loggedInUser
+	 */
+	public User getLoggedInUser() {
+		return loggedInUser;
 	}
+
+	/*
+	 * private checkDirectionsAvaliable() { loggedInUser.getPlace() }
+	 */
 
 }
