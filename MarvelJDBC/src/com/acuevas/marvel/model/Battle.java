@@ -1,8 +1,6 @@
 package com.acuevas.marvel.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Battle {
@@ -15,26 +13,29 @@ public class Battle {
 	 * @param <T> The owner which is going to delegate on.
 	 *
 	 */
-	private class OwnerInBattle<T> {
+	private class OwnerInBattle {
 		// Making the fields public because they're encapsulated anyway by the private
 		// class and I don't dirty the whole compilation unit by adding getters/setters
 		// to an inner class.
 		public int wins;
-		public List<Attack> storedAttacks = new ArrayList<>();
-		public T owner;
+		public Owner owner;
+		public boolean isEmpowered;
 
-		public OwnerInBattle(T owner) {
+		public OwnerInBattle(Owner owner, boolean empowered) {
 			this.owner = owner;
+			isEmpowered = empowered;
 		}
+
 	}
 
-	private OwnerInBattle<Villain> villainInBattle;
-	private OwnerInBattle<User> userInBattle;
+	private OwnerInBattle villainInBattle;
+	private OwnerInBattle userInBattle;
 	private Map<Integer, BattleTurnResult> turnsPlayed = new HashMap<>();
 
 	public Battle(User user, Villain villain) {
-		this.villainInBattle = new OwnerInBattle<>(villain);
-		this.userInBattle = new OwnerInBattle<>(user);
+		this.villainInBattle = new OwnerInBattle(villain, false);
+		this.userInBattle = new OwnerInBattle(user, isVillainWeakened(user, villain));
+		run();
 	}
 
 	/**
@@ -42,9 +43,8 @@ public class Battle {
 	 * 
 	 * @return true if it is weakened, false otherwise.
 	 */
-	private boolean isVillainWeakened() {
-		return userInBattle.owner.getSuperhero().getSuperpower().equals(villainInBattle.owner.getDebility()) ? true
-				: false;
+	private boolean isVillainWeakened(User user, Villain villain) {
+		return user.getSuperhero().getSuperpower().equals(villain.getDebility()) ? true : false;
 	}
 
 	/**
@@ -54,21 +54,7 @@ public class Battle {
 	 * @return the level of the user calculated.
 	 */
 	private int getUserCalculatedLevel() {
-		return (userInBattle.owner.level + ((isVillainWeakened()) ? 1 : 0));
-	}
-
-	/**
-	 * Prepares the attacks for each participant of the battle by adding them to
-	 * their storedAttacks List.
-	 */
-	private void setAttacks() {
-		for (int i = 0; i < villainInBattle.owner.level; i++) {
-			villainInBattle.storedAttacks.add(villainInBattle.owner.attack());
-		}
-
-		for (int i = 0; i < getUserCalculatedLevel(); i++) {
-			userInBattle.storedAttacks.add(userInBattle.owner.attack());
-		}
+		return (userInBattle.owner.level + ((userInBattle.isEmpowered) ? 1 : 0));
 	}
 
 	/**
@@ -77,12 +63,10 @@ public class Battle {
 	 * 
 	 * @param <T>
 	 * 
-	 * @param <T>
-	 * 
 	 * @return an instance of who has the lowest level.
 	 */
-	private Owner whoHasLowestLevel() {
-		return (villainInBattle.owner.level < getUserCalculatedLevel()) ? villainInBattle.owner : userInBattle.owner;
+	private OwnerInBattle whoHasLowestLevel() {
+		return (villainInBattle.owner.level < getUserCalculatedLevel()) ? villainInBattle : userInBattle;
 	}
 
 	/**
@@ -92,30 +76,28 @@ public class Battle {
 	 * @return an instance of who has the maximum level or <strong>null</strong> if
 	 *         they're equal.
 	 */
-	private Owner whoHasMaxLevel() {
+	private OwnerInBattle whoHasMaxLevel() {
 		if (villainInBattle.owner.level == userInBattle.owner.level)
 			return null;
 
 		if (villainInBattle.owner.level > getUserCalculatedLevel())
-			return villainInBattle.owner;
+			return villainInBattle;
 		else
-			return userInBattle.owner;
+			return userInBattle;
 	}
 
 	/**
 	 * Returns the winner of this turn or null if it's even.
 	 * 
-	 * @param               <T>
-	 * 
 	 * @param attackUser    ... The Attack of the User
 	 * @param attackVillain ... The Attack of the Villain
 	 * @return An instance of the winner of this turn or null if even.
 	 */
-	private Owner getWinnerOfTurn(Attack attackUser, Attack attackVillain) {
+	private OwnerInBattle getWinnerOfTurn(Attack attackUser, Attack attackVillain) {
 		if (attackUser.compareTo(attackVillain) == 1)
-			return userInBattle.owner;
+			return userInBattle;
 		else if (attackUser.compareTo(attackVillain) == -1)
-			return villainInBattle.owner;
+			return villainInBattle;
 		else
 			return null;
 	}
@@ -127,10 +109,11 @@ public class Battle {
 	 * @param turn ... An int of the actual turn.
 	 */
 	private void fightTurn(int turn) {
-		Attack attackUser = userInBattle.storedAttacks.get(turn);
-		Attack attackVillain = villainInBattle.storedAttacks.get(turn);
-		Owner winner = getWinnerOfTurn(attackUser, attackVillain);
-		BattleTurnResult result = new BattleTurnResult(attackUser, attackVillain, winner, turn);
+		Attack attackUser = userInBattle.owner.attack();
+		Attack attackVillain = villainInBattle.owner.attack();
+		OwnerInBattle winner = getWinnerOfTurn(attackUser, attackVillain);
+		winner.wins += 1;
+		BattleTurnResult result = new BattleTurnResult(attackUser, attackVillain, winner.owner, turn);
 		turnsPlayed.put(turn, result);
 	}
 
@@ -139,10 +122,37 @@ public class Battle {
 	 */
 	public void run() {
 		int turn = 0;
-		setAttacks();
 
-		while (whoHasLowestLevel().level < turn++) {
+		// TODO TRY IT WITHOUT BRACKETS
+		while (whoHasLowestLevel().owner.level <= turn++) {
 			fightTurn(turn);
 		}
+
+		if (whoHasMaxLevel() != null) {
+			while (whoHasMaxLevel().owner.level <= turn++) {
+				if (getWinner() != whoHasMaxLevel()) {
+					fightTurn(turn);
+				}
+			}
+		}
 	}
+
+	public OwnerInBattle getWinner() {
+		if (villainInBattle.wins == userInBattle.wins)
+			return null;
+		if (villainInBattle.wins > userInBattle.wins)
+			return villainInBattle;
+		else
+			return userInBattle;
+	}
+
+	/*
+	 * public Owner getBattleWinner() { long villainWins =
+	 * turnsPlayed.values().stream().map(BattleTurnResult::getWinner).filter(winner
+	 * -> winner.equals(villainInBattle.owner)).count(); long userWins =
+	 * turnsPlayed.values().stream().map(BattleTurnResult::getWinner).filter(winner
+	 * -> winner.equals(userInBattle.owner)).count();
+	 * 
+	 * return (villainWins >= userWins) ? }
+	 */
 }
