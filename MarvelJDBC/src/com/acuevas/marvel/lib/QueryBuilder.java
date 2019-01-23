@@ -136,7 +136,7 @@ public class QueryBuilder {
 	 * @throws QueryException
 	 */
 	private void insertValuesIntoQuery() throws SQLException, QueryException {
-		// TODO inserts the values into the ? of the PreparedStatement.
+		// TODO DOESNT ALLOW OPERATIONS AFTER CLOSING THE STATEMENT.
 		preparedStatement = connection.prepareStatement(query);
 		try {
 			comparators.forEach(this::safeSelector);
