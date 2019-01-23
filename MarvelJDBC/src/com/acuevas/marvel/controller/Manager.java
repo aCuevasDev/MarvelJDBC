@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import com.acuevas.marvel.exceptions.CommandException;
 import com.acuevas.marvel.exceptions.CommandException.CommandErrors;
 import com.acuevas.marvel.exceptions.DBException;
-import com.acuevas.marvel.model.Place;
+import com.acuevas.marvel.model.GemTO;
 import com.acuevas.marvel.model.User;
 import com.acuevas.marvel.persistance.MarvelDAO;
 
@@ -17,8 +17,26 @@ public class Manager {
 
 	public static void main(String[] args) {
 
-		Place place = new Place("test", "testDesc", "Asgard", "Midgard", null, null);
-		place.directionsAvaliable().forEach(direction -> System.out.println(direction));
+		GemTO gem = new GemTO("Mind Gem", "user1", "Loki", "Attilan");
+		try {
+			MarvelDAO.getInstance().updateGem(gem);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		/*
+		 * SuperHero hero; try { hero = MarvelDAO.getInstance().findHero("SuperJava");
+		 * System.out.println(hero.getName() + " : " + hero.getSuperpower());
+		 * 
+		 * User user = MarvelDAO.getInstance().getUserTOByKey("user1");
+		 * System.out.println(user.getUsername() + " : " + user.getPassword()); } catch
+		 * (DBException | SQLException e) { // TODO Auto-generated catch block
+		 * e.printStackTrace(); }
+		 */
+
+//		Place place = new Place("test", "testDesc", "Asgard", "Midgard", null, null);
+//		place.directionsAvaliable().forEach(direction -> System.out.println(direction));
 
 		/*
 		 * List<Type> types = Arrays.asList(Type.values()); int random = new

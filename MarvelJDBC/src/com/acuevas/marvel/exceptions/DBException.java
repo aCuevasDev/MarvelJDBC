@@ -4,7 +4,8 @@ package com.acuevas.marvel.exceptions;
 public class DBException extends Exception {
 
 	public enum DBErrors {
-		DOESNT_EXIST("The object requested doesn't exist in the database.", 100);
+		DOESNT_EXIST("The object requested doesn't exist in the database.", 100),
+		COULD_NOT_UPDATE("Could not update the database", 101);
 		private String message;
 		private int code;
 

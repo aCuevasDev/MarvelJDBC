@@ -1,5 +1,6 @@
 package com.acuevas.marvel.model;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,8 +25,13 @@ public abstract class Owner {
 	public void updateGemsPlace() {
 		// TODO THE SQL MUST BE TRANSACTIONAL
 		gems.forEach(gem -> {
-			gem.place = place.getName();
-			MarvelDAO.getInstance().updateGem(gem);
+			gem.setPlace(place.getName());
+			try {
+				MarvelDAO.getInstance().updateGem(gem);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		});
 	}
 

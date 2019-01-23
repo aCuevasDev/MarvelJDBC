@@ -2,13 +2,11 @@ package com.acuevas.marvel.persistance;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.acuevas.marvel.exceptions.DBException;
@@ -21,7 +19,6 @@ import com.acuevas.marvel.model.GemTO;
 import com.acuevas.marvel.model.Place;
 import com.acuevas.marvel.model.SuperHero;
 import com.acuevas.marvel.model.User;
-import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.StatementImpl;
 
 /**
@@ -95,10 +92,6 @@ public class MarvelDAO {
 			QueryBuilder query = new QueryBuilder();
 			query.select().from(DBTable.Superhero).where(DBColumn.name, name);
 			ResultSet resultSet = query.executeQuery();
-			/*
-			 * String query2 = "select * from superhero where name ='" + name + "';";
-			 * ResultSet resultSet = statement.executeQuery(query);
-			 */
 			String superpower = null;
 			String name2 = null;
 			if (resultSet.next()) {
@@ -169,6 +162,7 @@ public class MarvelDAO {
 			QueryBuilder query = new QueryBuilder();
 			query.select().from(DBTable.User).where(DBColumn.username, username);
 			ResultSet resultSet = query.executeQuery();
+			resultSet.next();
 			return new User(resultSet.getString(DBColumn.username.toString()),
 					resultSet.getString(DBColumn.pass.toString()));
 		});
@@ -222,32 +216,29 @@ public class MarvelDAO {
 		} catch (Exception e) {
 			throw new DBException(e);
 		} finally {
-			if (statement != null && !statement.isClosed())
-				statement.close();
-			if (preparedStatement != null && !preparedStatement.isClosed())
-				preparedStatement.close();
+			if (getStatement() != null && !getStatement().isClosed())
+				getStatement().close();
+			if (getPreparedStatement() != null && !getPreparedStatement().isClosed())
+				getPreparedStatement().close();
 			disconnect();
 		}
 		return obj;
 	}
 
-	@SuppressWarnings("unchecked")
-	public List<String> getColumnNames(String table) throws DBException, SQLException {
-		// TODO RELIES ON ORDER ATM
-		return (List<String>) executeQuery(() -> {
-			statement = connection.createStatement();
-			List<String> columnNames = new ArrayList<>();
-			String query = "select * from " + table + " limit 1;";
-			ResultSet resultSet = statement.executeQuery(query);
-			resultSet.beforeFirst();
-			ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
-			int total = resultSetMetaData.getColumnCount();
-			for (int i = 1; i < total + 1; i++)
-				columnNames.add(resultSetMetaData.getColumnName(i));
-
-			return columnNames;
-		});
-	}
+	/*
+	 * @SuppressWarnings("unchecked") public List<String> getColumnNames(String
+	 * table) throws DBException, SQLException { // TODO RELIES ON ORDER ATM return
+	 * (List<String>) executeQuery(() -> {
+	 * setStatement(connection.createStatement()); List<String> columnNames = new
+	 * ArrayList<>(); String query = "select * from " + table + " limit 1;";
+	 * ResultSet resultSet = getStatement().executeQuery(query);
+	 * resultSet.beforeFirst(); ResultSetMetaData resultSetMetaData =
+	 * resultSet.getMetaData(); int total = resultSetMetaData.getColumnCount(); for
+	 * (int i = 1; i < total + 1; i++)
+	 * columnNames.add(resultSetMetaData.getColumnName(i));
+	 * 
+	 * return columnNames; }); }
+	 */
 
 	/**
 	 * 
@@ -263,9 +254,40 @@ public class MarvelDAO {
 		return null;
 	}
 
-	public void updateGem(GemTO gem) {
-		// TODO this method
+	public void updateGem(final GemTO gem) throws SQLException {
+		try {
+			executeQuery(() -> {
+				QueryBuilder query = new QueryBuilder();
+				Map<DBColumn, Object> properties = new HashMap<>();
 
+				properties.put(DBColumn.owner, gem.getOwner());
+				properties.put(DBColumn.place, gem.getPlace());
+
+				query.update(DBTable.Gem, properties).where(DBColumn.name, gem.getName()).and(DBColumn.user,
+						gem.getUser());
+
+				query.executeUpdate();
+
+				return null;
+			});
+		} catch (DBException e) {
+			e.printStackTrace();
+			// TODO SHOW ERROR MESSAGE
+		}
+	}
+
+	/**
+	 * @return the preparedStatement
+	 */
+	public PreparedStatement getPreparedStatement() {
+		return QueryBuilder.getPreparedStatement();
+	}
+
+	/**
+	 * @return the statement
+	 */
+	public Statement getStatement() {
+		return QueryBuilder.getStatement();
 	}
 
 }

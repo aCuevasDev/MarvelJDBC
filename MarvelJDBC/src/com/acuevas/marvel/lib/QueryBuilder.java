@@ -4,12 +4,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import com.acuevas.marvel.exceptions.DBException;
+import com.acuevas.marvel.exceptions.DBException.DBErrors;
 import com.acuevas.marvel.lib.DBTable.DBColumn;
 import com.acuevas.marvel.lib.exceptions.QueryException;
 import com.acuevas.marvel.lib.exceptions.QueryException.QueryError;
@@ -23,60 +25,130 @@ import com.acuevas.marvel.persistance.MarvelDAO;
  *
  */
 public class QueryBuilder {
-	String query = "";
-	List<Object> comparators = new ArrayList<>();
-	Connection connection;
-	PreparedStatement preparedStatement;
+	private String query = "";
+	private List<Object> comparators = new ArrayList<>();
+	private Connection connection;
+	private static PreparedStatement preparedStatement;
+	private static Statement statement;
 
 	boolean where = false;
 
 	public QueryBuilder() {
 		connection = MarvelDAO.getInstance().getConnection();
+
 	}
 
-	public void insertInto(DBTable dbTable, Map<DBColumn, Object> columnValue)
-			throws SQLException, QueryException, DBException {
+	// TODO CHANGE ALL CONCAT SEEMS TO NOT WORK
+
+	/**
+	 * Inserts an object into a table.
+	 * 
+	 * @param dbTable
+	 * @param columnValue
+	 * @throws SQLException
+	 * @throws QueryException
+	 * @throws DBException
+	 */
+	public QueryBuilder insertInto(DBTable dbTable, Map<DBColumn, Object> columnValue) {
 		// TODO do insert with columns instead of index
-		query.concat("insert into " + dbTable.name() + " values (");
+		query += ("insert into " + dbTable.name() + " values (");
 		Collection<Object> values = columnValue.values();
-		values.forEach(value -> query.concat("?,"));
-		query.substring(query.lastIndexOf(",")).replace(",", ")");
-		executeUpdate();
+		values.forEach(value -> query += ("?,"));
+		checkEnding();
+		return this;
 	}
 
-	public ResultSet executeQuery() {
+	/**
+	 * Updates an object of a table.
+	 * 
+	 * @param dbTable
+	 * @param columnValues
+	 * @throws SQLException
+	 */
+	public QueryBuilder update(DBTable dbTable, Map<DBColumn, Object> columnValues) {
+		query += ("update " + dbTable.name() + " set ");
+		columnValues.keySet().forEach(dbColumn -> {
+			query += (dbColumn.toString() + " = '" + columnValues.get(dbColumn) + "', ");
+		});
+		checkEnding();
+		return this;
+	}
+
+	private void checkEnding() {
+		if (query.endsWith(", ")) {
+			query = query.substring(0, query.length() - 2);
+			query += " ";
+		}
+	}
+
+	/**
+	 * Executes the query, <strong>do not use for update/insert.</strong>
+	 * 
+	 * @return ResultSet
+	 * @throws SQLException
+	 */
+	public ResultSet executeQuery() throws SQLException {
 		// TODO EXECUTES THE QUERY AND RETURNS A RESULTSET.
 
 		try {
 			insertValuesIntoQuery();
-		} catch (SQLException | QueryException e) {
-			// TODO Auto-generated catch block
+		} catch (QueryException e) {
+			// TODO show message, query is wrong.
 			e.printStackTrace();
 		}
-		return null;
+		return preparedStatement.executeQuery();
 	}
 
-	private void executeUpdate() throws DBException, SQLException {
-		// TODO THIS METHOD EXECUTES A QUERY WHICH RETURNS NOTHING, JUST TRUE IF
-		// EVERYTHING'S OKAY. TURNED VOID BUT CONTROLING ERROR WITH EXCEPTIONS
+	/**
+	 * Executes the query to update/insert the table.
+	 * 
+	 * @param columnValue
+	 * @throws SQLException
+	 * @throws DBException
+	 */
+	public void executeUpdate() throws DBException, SQLException {
+		// TODO THIS METHOD EXECUTES A QUERY WHICH RETURNS NOTHING AND UPDATES DB.
+		Statement statement = connection.createStatement();
 		try {
-			insertValuesIntoQuery();
-		} catch (SQLException | QueryException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			connection.setAutoCommit(false);
+			statement.executeUpdate(query);
+			connection.commit();
+		} catch (SQLException ex) {
+			connection.rollback();
+			throw new DBException(DBErrors.COULD_NOT_UPDATE);
+		} finally {
+			connection.setAutoCommit(true);
 		}
 	}
 
+	/**
+	 * Sets the values into the query
+	 * 
+	 * @throws SQLException
+	 * @throws QueryException
+	 */
 	private void insertValuesIntoQuery() throws SQLException, QueryException {
 		// TODO inserts the values into the ? of the PreparedStatement.
 		preparedStatement = connection.prepareStatement(query);
 		try {
 			comparators.forEach(this::safeSelector);
 		} catch (RuntimeException e) {
-			throw new QueryException(e.getCause());
-			// TODO try instance of
+			exceptionDiscriminator(e);
 		}
-		// TODO TRYCATCH TO THROW NEW EXCEPTION
+	}
+
+	/**
+	 * Discriminates between the exceptions while wrapped in a RuntimeException
+	 * 
+	 * @param e
+	 * @throws SQLException
+	 * @throws QueryException
+	 */
+	private void exceptionDiscriminator(RuntimeException e) throws SQLException, QueryException {
+		if (e.getCause().getClass() == SQLException.class)
+			throw new SQLException(e);
+		else
+			throw new QueryException(e);
 	}
 
 	/**
@@ -99,23 +171,23 @@ public class QueryBuilder {
 	}
 
 	/**
-	 * Sets the parameter given into the PreparedStatement.
+	 * Sets the parameter given into the PreparedStatement discriminating by type.
 	 * 
 	 * @param comparator ... The object to insert.
 	 * @throws SQLException   When JDBC encounters an error connecting to the DB.
 	 * @throws QueryException When the object inserted is not supported.
 	 */
 	private void setSelector(Object comparator) throws SQLException, QueryException {
-		int index = comparators.indexOf(comparator);
+		int index = comparators.indexOf(comparator) + 1;
 		@SuppressWarnings("rawtypes")
 		Class objClass = comparator.getClass();
 
 		if (objClass.equals(Integer.class) || objClass.equals(int.class))
-			preparedStatement.setInt(index, (int) comparator);
+			getPreparedStatement().setInt(index, (int) comparator);
 		else if (objClass.equals(String.class))
-			preparedStatement.setString(index, (String) comparator);
+			getPreparedStatement().setString(index, (String) comparator);
 		else if (objClass.equals(Double.class) || objClass.equals(double.class))
-			preparedStatement.setDouble(index, (double) comparator);
+			getPreparedStatement().setDouble(index, (double) comparator);
 		else
 			throw new QueryException(QueryError.NOT_SUPPORTED, comparator);
 	}
@@ -140,7 +212,7 @@ public class QueryBuilder {
 		columns.forEach(column -> {
 			query += (column.name() + ", ");
 		});
-		query.substring(query.lastIndexOf(",")).replace(",", "");
+		checkEnding();
 		return this;
 	}
 
@@ -149,11 +221,11 @@ public class QueryBuilder {
 		return this;
 	}
 
-	public QueryBuilder where(DBColumn column, Object comparator) throws SQLException {
+	public QueryBuilder where(DBColumn column, Object comparator) {
 		// TODO MAYBE USE query.matches to check if the query is right?
 
-		query += ("where " + column.name() + " = ? ");
-		comparators.add(comparator);
+		query += ("where " + column.name() + " = '" + comparator.toString() + "' ");
+//		comparators.add(comparator);
 		where = true;
 		return this;
 	}
@@ -162,8 +234,17 @@ public class QueryBuilder {
 		if (!where)
 			throw new QueryException(QueryError.WHERE_BEFORE);
 
-		query.concat("and " + column.name() + " = ? ");
-		comparators.add(comparator);
+		query += ("and " + column.name() + " = '" + comparator.toString() + "'");
+//		comparators.add(comparator);
+		return this;
+	}
+
+	public QueryBuilder nAnd(DBColumn column, Object comparator) throws QueryException {
+		if (!where)
+			throw new QueryException(QueryError.WHERE_BEFORE);
+
+		query += ("and " + column.name() + " != '" + comparator.toString() + "'");
+//		comparators.add(comparator);
 		return this;
 	}
 
@@ -171,9 +252,46 @@ public class QueryBuilder {
 		if (!where)
 			throw new QueryException(QueryError.WHERE_BEFORE);
 
-		query.concat("or " + column.name() + " = ? ");
-		comparators.add(comparator);
+		query += ("or " + column.name() + " = '" + comparator.toString() + "'");
+//		comparators.add(comparator);
 		return this;
+	}
+
+	public QueryBuilder nOr(DBColumn column, Object comparator) throws QueryException {
+		if (!where)
+			throw new QueryException(QueryError.WHERE_BEFORE);
+
+		query += ("or " + column.name() + " != '" + comparator.toString() + "'");
+//		comparators.add(comparator);
+		return this;
+	}
+
+	/**
+	 * @return the preparedStatement
+	 */
+	public static PreparedStatement getPreparedStatement() {
+		return preparedStatement;
+	}
+
+	/**
+	 * @param preparedStatement the preparedStatement to set
+	 */
+	public static void setPreparedStatement(PreparedStatement preparedStatement) {
+		QueryBuilder.preparedStatement = preparedStatement;
+	}
+
+	/**
+	 * @return the statement
+	 */
+	public static Statement getStatement() {
+		return statement;
+	}
+
+	/**
+	 * @param statement the statement to set
+	 */
+	public static void setStatement(Statement statement) {
+		QueryBuilder.statement = statement;
 	}
 
 }
