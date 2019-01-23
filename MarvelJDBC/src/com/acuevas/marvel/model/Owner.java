@@ -11,7 +11,7 @@ import com.acuevas.marvel.persistance.MarvelDAO;
 
 public abstract class Owner {
 
-	protected int level;
+	protected int level = 1;
 	protected Place place;
 	protected List<GemTO> gems = new ArrayList<>();
 

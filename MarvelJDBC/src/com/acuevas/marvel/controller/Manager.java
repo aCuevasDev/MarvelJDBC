@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import com.acuevas.marvel.exceptions.CommandException;
 import com.acuevas.marvel.exceptions.CommandException.CommandErrors;
 import com.acuevas.marvel.exceptions.DBException;
-import com.acuevas.marvel.model.GemTO;
+import com.acuevas.marvel.model.SuperHero;
 import com.acuevas.marvel.model.User;
 import com.acuevas.marvel.persistance.MarvelDAO;
 
@@ -17,13 +17,22 @@ public class Manager {
 
 	public static void main(String[] args) {
 
-		GemTO gem = new GemTO("Mind Gem", "user1", "Loki", "Attilan");
+		SuperHero hero;
 		try {
-			MarvelDAO.getInstance().updateGem(gem);
-		} catch (SQLException e) {
+			hero = MarvelDAO.getInstance().findHero("SuperJava");
+			User user = new User("AlexTest", "AlexPass", hero);
+			MarvelDAO.getInstance().insert(user);
+
+		} catch (DBException | SQLException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
+
+		/*
+		 * GemTO gem = new GemTO("Mind Gem", "user1", "Loki", "Attilan"); try {
+		 * MarvelDAO.getInstance().updateGem(gem); } catch (SQLException e) { // TODO
+		 * Auto-generated catch block e.printStackTrace(); }
+		 */
 
 		/*
 		 * SuperHero hero; try { hero = MarvelDAO.getInstance().findHero("SuperJava");

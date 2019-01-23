@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -44,17 +43,18 @@ public class QueryBuilder {
 	 * Inserts an object into a table.
 	 * 
 	 * @param dbTable
-	 * @param columnValue
+	 * @param columnValues
 	 * @throws SQLException
 	 * @throws QueryException
 	 * @throws DBException
 	 */
-	public QueryBuilder insertInto(DBTable dbTable, Map<DBColumn, Object> columnValue) {
+	public QueryBuilder insertInto(DBTable dbTable, List<Object> values) throws SQLException, QueryException {
 		// TODO do insert with columns instead of index
 		query += ("insert into " + dbTable.name() + " values (");
-		Collection<Object> values = columnValue.values();
+		comparators.addAll(values);
 		values.forEach(value -> query += ("?,"));
-		checkEnding();
+		checkEnding(true);
+		insertValuesIntoQuery();
 		return this;
 	}
 
@@ -63,6 +63,7 @@ public class QueryBuilder {
 	 * 
 	 * @param dbTable
 	 * @param columnValues
+	 * @throws QueryException
 	 * @throws SQLException
 	 */
 	public QueryBuilder update(DBTable dbTable, Map<DBColumn, Object> columnValues) {
@@ -78,6 +79,13 @@ public class QueryBuilder {
 		if (query.endsWith(", ")) {
 			query = query.substring(0, query.length() - 2);
 			query += " ";
+		}
+	}
+
+	private void checkEnding(boolean nothing) {
+		if (query.endsWith(",")) {
+			query = query.substring(0, query.length() - 1);
+			query += ") ";
 		}
 	}
 
@@ -183,11 +191,11 @@ public class QueryBuilder {
 		Class objClass = comparator.getClass();
 
 		if (objClass.equals(Integer.class) || objClass.equals(int.class))
-			getPreparedStatement().setInt(index, (int) comparator);
+			preparedStatement.setInt(index, (int) comparator);
 		else if (objClass.equals(String.class))
-			getPreparedStatement().setString(index, (String) comparator);
+			preparedStatement.setString(index, (String) comparator);
 		else if (objClass.equals(Double.class) || objClass.equals(double.class))
-			getPreparedStatement().setDouble(index, (double) comparator);
+			preparedStatement.setDouble(index, (double) comparator);
 		else
 			throw new QueryException(QueryError.NOT_SUPPORTED, comparator);
 	}

@@ -23,6 +23,12 @@ public class User extends Owner {
 		this.password = password;
 	}
 
+	public User(String username, String password, SuperHero superhero) {
+		this.username = username;
+		this.password = password;
+		this.superhero = superhero;
+	}
+
 	public void move(String direction) throws CommandException {
 		Place newPlace;
 		switch (direction.substring(0, 1).toUpperCase()) {

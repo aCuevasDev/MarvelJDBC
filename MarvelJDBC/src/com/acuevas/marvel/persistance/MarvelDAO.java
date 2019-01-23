@@ -6,7 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.acuevas.marvel.exceptions.DBException;
@@ -31,6 +33,8 @@ import com.mysql.jdbc.StatementImpl;
 
 public class MarvelDAO {
 
+	// TODO ELIMINATE DBEXCEPTION THROWS AND PUT A TRYCATCH TO CONTROL ERROR
+
 	private Connection connection;
 	private Statement statement;
 	private PreparedStatement preparedStatement;
@@ -54,13 +58,12 @@ public class MarvelDAO {
 		return marvelDAO;
 	}
 
-//TODO CHANGE THIS TO PRIVATE
 	/**
 	 * Connects the program with the DB
 	 * 
 	 * @throws SQLException
 	 */
-	public void connect() throws SQLException {
+	private void connect() throws SQLException {
 		String url = "jdbc:mysql://localhost:3306/marvel?useSSL=false&allowPublicKeyRetrieval=true";
 		String user = "marvel";
 		String pass = "marvel";
@@ -108,6 +111,28 @@ public class MarvelDAO {
 
 	}
 
+	public void insert(User user) throws SQLException {
+		try {
+			executeQuery(() -> {
+				QueryBuilder query = new QueryBuilder();
+				List<Object> values = new ArrayList<>();
+
+				values.add(user.getUsername());
+				values.add(user.getPassword());
+				values.add(user.getLevel());
+				values.add(user.getSuperhero().getName());
+				values.add("New York");
+				values.add(user.getPoints());
+
+				query.insertInto(DBTable.User, values).executeUpdate();
+				return null;
+			});
+		} catch (DBException e) {
+			e.printStackTrace();
+			// TODO SHOW ERROR
+		}
+	}
+
 	// TODO TEST THIS
 	public boolean isVillianPresent(String place) throws DBException, SQLException {
 		return (boolean) executeQuery(() -> {
@@ -131,14 +156,14 @@ public class MarvelDAO {
 		});
 	}
 
-	// TODO TEST
-	public void register(User user) throws DBException, SQLException {
-		executeQuery(() -> {
-			QueryBuilder query = new QueryBuilder();
-			query.insertInto(DBTable.User, getPropertiesListed(user));
-			return null; // Interface MyRunable returns T so I need to return something.
-		});
-	}
+//	// TODO TEST
+//	public void register(User user) throws DBException, SQLException {
+//		executeQuery(() -> {
+//			QueryBuilder query = new QueryBuilder();
+//			query.insertInto(DBTable.User, getPropertiesListed(user));
+//			return null; // Interface MyRunable returns T so I need to return something.
+//		});
+//	}
 
 	public User getUserByKey(String username) throws DBException, SQLException {
 		return (User) executeQuery(() -> {
@@ -176,16 +201,16 @@ public class MarvelDAO {
 	 * @param user User
 	 * @return a Map where the key is the column of the DB and the value its value.
 	 */
-	public Map<DBColumn, Object> getPropertiesListed(User user) {
-		Map<DBColumn, Object> userProperties = new HashMap<>();
-		userProperties.put(DBColumn.username, user.getUsername());
-		userProperties.put(DBColumn.pass, user.getPassword());
-		userProperties.put(DBColumn.level, user.getLevel());
-		userProperties.put(DBColumn.superhero, user.getSuperhero().getName());
-		userProperties.put(DBColumn.place, user.getPlace());
-		userProperties.put(DBColumn.points, user.getPoints());
-		return userProperties;
-	}
+//	public Map<DBColumn, Object> getPropertiesListed(User user) {
+//		Map<DBColumn, Object> userProperties = new HashMap<>();
+//		userProperties.put(DBColumn.username, user.getUsername());
+//		userProperties.put(DBColumn.pass, user.getPassword());
+//		userProperties.put(DBColumn.level, user.getLevel());
+//		userProperties.put(DBColumn.superhero, user.getSuperhero().getName());
+//		userProperties.put(DBColumn.place, user.getPlace());
+//		userProperties.put(DBColumn.points, user.getPoints());
+//		return userProperties;
+//	} 
 
 	/**
 	 * Connects with the DB, executes the given IMyRunnable and then closes all the
