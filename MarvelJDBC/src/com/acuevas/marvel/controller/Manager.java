@@ -114,6 +114,8 @@ public class Manager {
 				logIn(line[1], line[2]);
 				View.printMessage(View.ViewMessage.WELCOME, loggedInUser);
 				View.printPlace(loggedInUser.getPlace());
+				showAvailableGems();
+				showDirections();
 				break;
 			case "R":
 				commandArguments(line, Commands.REGISTER.getMaxArguments());
