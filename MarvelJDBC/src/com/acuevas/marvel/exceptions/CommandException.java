@@ -7,7 +7,8 @@ public class CommandException extends Exception {
 		INCORRECT_NUM_ARGUMENTS("[ Wrong number of arguments ]", 200), USER_EXISTS("[ User already exists ]", 201),
 		SUPERHERO_NOEXISTS("[ There isn't a superhero with that name ]", 202),
 		USER_OR_PSWRD_INCORRECT("[ User or password incorrect ]", 203), WRONG_DIRECTION("[ Wrong direction ]", 204),
-		WRONG_COMMAND("[ Wrong command ]", 205);
+		WRONG_COMMAND("[ Wrong command ]", 205), WRONG_GEM("[ This gem is not available ]", 206),
+		NOT_LOGGED_IN("[ Not logged in ]", 207);
 
 		private String message;
 		private int code;
@@ -33,10 +34,8 @@ public class CommandException extends Exception {
 
 	}
 
-	CommandErrors error;
-
 	public CommandException(CommandErrors error) {
-		this.error = error;
+		super(error.getMessage());
 	}
 
 }

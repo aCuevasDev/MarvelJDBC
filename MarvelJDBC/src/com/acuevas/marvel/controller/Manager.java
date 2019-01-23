@@ -1,39 +1,55 @@
 package com.acuevas.marvel.controller;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.SQLException;
+import java.util.List;
 
 import com.acuevas.marvel.exceptions.CommandException;
 import com.acuevas.marvel.exceptions.CommandException.CommandErrors;
+import com.acuevas.marvel.model.GemTO;
 import com.acuevas.marvel.model.Place;
 import com.acuevas.marvel.model.SuperHero;
 import com.acuevas.marvel.model.User;
 import com.acuevas.marvel.persistance.MarvelDAO;
 import com.acuevas.marvel.util.Commands;
 import com.acuevas.marvel.view.View;
-import com.acuevas.marvel.view.View.ViewError;
 import com.acuevas.marvel.view.View.ViewMessage;
 
 public class Manager {
 	// IMPORTANT NOTE: MySql-ConnectorJ Drivers are v.5.1.47, more updated versions
 	// give problems.
 
-	private User loggedInUser;
+	private static User loggedInUser;
 
 	public static void main(String[] args) {
 
-		// TODO AN ENEMY MUST PICKUP GEMS IN A PLACE WITHOUT OWNER
-
-		SuperHero hero;
-		try {
-			hero = MarvelDAO.getInstance().findHero("SuperJava");
-			User user = new User("AlexTest", "AlexPass", hero);
-			MarvelDAO.getInstance().insert(user);
-
-		} catch (SQLException e) {
-			View.printError(ViewError.CRITICAL_ERROR);
-			View.printError(e.getMessage());
-			View.printMessage(ViewMessage.GOODBYE);
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		String line = "";
+		View.printMessage(ViewMessage.HELLO);
+		while (!line.toUpperCase().subSequence(0, 0).equals("X")) {
+			try {
+				View.printMessage(ViewMessage.INSERT_COMMAND);
+				line = br.readLine();
+				readCommand(line.split(" "));
+			} catch (IOException e) {
+				View.printError(e.getMessage());
+			} catch (SQLException e) {
+				View.printError(e.getMessage());
+			}
 		}
+
+		// TODO AN ENEMY MUST PICKUP GEMS IN A PLACE WITHOUT OWNER
+		/*
+		 * SuperHero hero; try { hero = MarvelDAO.getInstance().findHero("SuperJava");
+		 * Place place = MarvelDAO.getInstance().getPlaceByKey("New York"); User user =
+		 * new User("AlexTest", "AlexPass", hero, place);
+		 * MarvelDAO.getInstance().insert(user);
+		 * 
+		 * } catch (SQLException e) { View.printError(ViewError.CRITICAL_ERROR);
+		 * View.printError(e.getMessage()); View.printMessage(ViewMessage.GOODBYE); }
+		 */
 
 		/*
 		 * GemTO gem = new GemTO("Mind Gem", "user1", "Loki", "Attilan"); try {
@@ -82,21 +98,39 @@ public class Manager {
 		 */
 	}
 
-	private void splitLine(String line) {
-		String[] lineArray = line.split(" ");
-	}
-
-	private void readCommand(String[] line) throws CommandException, SQLException {
+	/**
+	 * Reads a command and executes the pertinent action.
+	 * 
+	 * @param line
+	 * @throws CommandException
+	 * @throws SQLException
+	 */
+	private static void readCommand(String[] line) throws SQLException {
 		try {
 			String letter = line[0];
 			switch (letter.toUpperCase()) {
 			case "L":
 				commandArguments(line, Commands.LOGIN.getMaxArguments());
 				logIn(line[1], line[2]);
+				View.printMessage(View.ViewMessage.WELCOME, loggedInUser);
+				View.printPlace(loggedInUser.getPlace());
 				break;
 			case "R":
 				commandArguments(line, Commands.REGISTER.getMaxArguments());
 				registerUser(line[1], line[2], line[3]);
+				break;
+			case "N":
+			case "S":
+			case "E":
+			case "W":
+				if (loggedInUser != null) {
+					loggedInUser.move(letter);
+					showAvailableGems();
+					showDirections();
+				} else
+					throw new CommandException(CommandErrors.NOT_LOGGED_IN);
+				break;
+			case "G":
 				break;
 
 			case "V":
@@ -109,7 +143,7 @@ public class Manager {
 				break;
 
 			default:
-				break;
+				throw new CommandException(CommandErrors.WRONG_COMMAND);
 			}
 		} catch (CommandException e) {
 			View.printError(e.getMessage());
@@ -117,23 +151,64 @@ public class Manager {
 
 	}
 
-	private void viewHeros() throws SQLException {
+	/**
+	 * Shows the available gems in the place of the user
+	 * 
+	 * @throws SQLException
+	 */
+	public static void showAvailableGems() throws SQLException {
+		List<GemTO> gems;
+		gems = MarvelDAO.getInstance().getGemsWithoutOwnerOn(loggedInUser.getPlace());
+		View.printMessage(ViewMessage.AVAILABLE_GEMS);
+		gems.forEach(gem -> View.printMessage(gem.toString()));
+	}
+
+	/**
+	 * Shows the directions available in the new place.
+	 */
+	private static void showDirections() {
+		View.printMessage(ViewMessage.AVAILABLE_PLACES);
+		loggedInUser.getPlace().directionsAvaliable().forEach(direction -> {
+			View.printMessage(direction.toString());
+		});
+	}
+
+	/**
+	 * Shows all the heroes from the DB
+	 * 
+	 * @throws SQLException
+	 */
+	private static void viewHeros() throws SQLException {
 		MarvelDAO.getInstance().findAllHeroes().forEach(hero -> {
 			View.printMessage(hero.toString());
 		});
 	}
 
-	public void commandArguments(String[] line, int commandArgumentsNumber) throws CommandException {
+	/**
+	 * Evaluates if a command has a wrong number of arguments
+	 * 
+	 * @param line                   the command
+	 * @param commandArgumentsNumber number of arguments expected
+	 * @throws CommandException
+	 */
+	public static void commandArguments(String[] line, int commandArgumentsNumber) throws CommandException {
 		int argumentsLine = line.length;
-		if (argumentsLine < commandArgumentsNumber || argumentsLine > commandArgumentsNumber)
+		if (argumentsLine != commandArgumentsNumber)
 			throw new CommandException(CommandErrors.INCORRECT_NUM_ARGUMENTS);
 	}
 
-	// TODO THROWS HERE? maybe use db exception and just throw command here
-	public void logIn(String username, String password) throws SQLException, CommandException {
+	/**
+	 * Logs in the user
+	 * 
+	 * @param username
+	 * @param password
+	 * @throws SQLException
+	 * @throws CommandException
+	 */
+	public static void logIn(String username, String password) throws SQLException, CommandException {
 		boolean incorrect = false;
 		if (MarvelDAO.getInstance().isRegistered(username)) {
-			User user = MarvelDAO.getInstance().getUserTOByKey(username);
+			User user = MarvelDAO.getInstance().getUserByKey(username);
 			if (user.getPassword().equals(password))
 				loggedInUser = user;
 			else
@@ -146,7 +221,15 @@ public class Manager {
 			throw new CommandException(CommandErrors.USER_OR_PSWRD_INCORRECT);
 	}
 
-	public void registerUser(String username, String password, String superhero) throws SQLException {
+	/**
+	 * Registers the user
+	 * 
+	 * @param username
+	 * @param password
+	 * @param superhero
+	 * @throws SQLException
+	 */
+	public static void registerUser(String username, String password, String superhero) throws SQLException {
 		SuperHero hero = MarvelDAO.getInstance().findHero(superhero);
 		Place place = MarvelDAO.getInstance().getPlaceByKey("New York");
 		User newUser = new User(username, password, hero, place);
@@ -159,9 +242,5 @@ public class Manager {
 	public User getLoggedInUser() {
 		return loggedInUser;
 	}
-
-	/*
-	 * private checkDirectionsAvaliable() { loggedInUser.getPlace() }
-	 */
 
 }

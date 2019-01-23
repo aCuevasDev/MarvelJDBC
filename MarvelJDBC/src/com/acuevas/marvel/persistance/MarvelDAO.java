@@ -81,6 +81,12 @@ public class MarvelDAO {
 			connection.close();
 	}
 
+	/**
+	 * Gets all the heroes from the DB
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
 	@SuppressWarnings("unchecked")
 	public List<SuperHero> findAllHeroes() throws SQLException {
 		try {
@@ -137,40 +143,123 @@ public class MarvelDAO {
 		return null;
 	}
 
+	/**
+	 * Inserts a user into the DB
+	 * 
+	 * @param user
+	 * @throws SQLException
+	 */
 	public void insert(User user) throws SQLException {
+
 		try {
-			executeQuery(() -> {
+			if (!isRegistered(user.getUsername())) {
+				executeQuery(() -> {
+					QueryBuilder query = new QueryBuilder();
+					List<Object> values = new ArrayList<>();
+
+					values.add(user.getUsername());
+					values.add(user.getPassword());
+					values.add(user.getLevel());
+					values.add(user.getSuperhero().getName());
+					values.add(user.getPlace().getName());
+					values.add(user.getPoints());
+
+					query.insertInto(DBTable.User, values);
+					return null;
+				});
+			} else
+				throw new DBException(DBErrors.USER_ALREADY_EXISTS);
+		} catch (DBException e) {
+			View.printError(e.getMessage());
+		}
+
+	}
+
+	/**
+	 * Gets the gems on a place without owner
+	 * 
+	 * @param place
+	 * @return a List of gems
+	 * @throws SQLException
+	 */
+	@SuppressWarnings("unchecked")
+	public List<GemTO> getGemsWithoutOwnerOn(Place place) throws SQLException {
+		try {
+			return (List<GemTO>) executeQuery(() -> {
+				List<GemTO> gems = new ArrayList<>();
 				QueryBuilder query = new QueryBuilder();
-				List<Object> values = new ArrayList<>();
-
-				values.add(user.getUsername());
-				values.add(user.getPassword());
-				values.add(user.getLevel());
-				values.add(user.getSuperhero().getName());
-				values.add(user.getPlace().getName());
-				values.add(user.getPoints());
-
-				query.insertInto(DBTable.User, values);
-				return null;
+				query.select().from(DBTable.Gem).whereNull(DBColumn.owner).and(DBColumn.place, place.getName());
+				ResultSet resultSet = query.executeQuery();
+				while (resultSet.next()) {
+					String name = resultSet.getString(DBColumn.name.toString());
+					String user = resultSet.getString(DBColumn.user.toString());
+					String owner = resultSet.getString(DBColumn.owner.toString());
+					String place2 = resultSet.getString(DBColumn.place.toString());
+					gems.add(new GemTO(name, user, owner, place2));
+				}
+				return gems;
 			});
 		} catch (DBException e) {
 			View.printError(e.getMessage());
 		}
+		return null;
 	}
 
-	// TODO TEST THIS
-	public boolean isVillianPresent(String place) throws DBException, SQLException {
-		return (boolean) executeQuery(() -> {
-			QueryBuilder query = new QueryBuilder();
-			query.select().from(DBTable.Enemy).where(DBColumn.place, place);
-			ResultSet resultSet = query.executeQuery();
+	/**
+	 * Gets a number of random places from the DB
+	 * 
+	 * @param limit the number of places you want
+	 * @return List<Place>
+	 * @throws SQLException
+	 */
+	public List<Place> getRandomPlace(int limit) throws SQLException {
+		List<Place> places = new ArrayList<>();
+		String query = "select * from place order by rand() limit " + limit;
+		Statement statement = connection.createStatement();
+		ResultSet resultSet = statement.executeQuery(query);
+		while (resultSet.next()) {
+			String name2 = resultSet.getString(DBColumn.name.toString());
+			String description = resultSet.getString(DBColumn.description.toString());
+			String north = resultSet.getString(DBColumn.north.toString());
+			String south = resultSet.getString(DBColumn.south.toString());
+			String east = resultSet.getString(DBColumn.east.toString());
+			String west = resultSet.getString(DBColumn.west.toString());
+			places.add(new Place(name2, description, north, south, east, west));
+		}
+		return places;
 
-			return resultSet.next();
-		});
 	}
 
-	// TODO get place by name and get superhero
-	// TODO TEST
+	/**
+	 * Gets if a villain is present on a place
+	 * 
+	 * @param place
+	 * @return
+	 * @throws DBException
+	 * @throws SQLException
+	 */
+	public Boolean isVillianPresent(String place) throws SQLException {
+		try {
+			return (boolean) executeQuery(() -> {
+				QueryBuilder query = new QueryBuilder();
+				query.select().from(DBTable.Enemy).where(DBColumn.place, place);
+				ResultSet resultSet = query.executeQuery();
+
+				return resultSet.next();
+			});
+		} catch (DBException e) {
+			View.printError(e.getMessage());
+		}
+		return null;
+	}
+
+	/**
+	 * Gets if a user is registered
+	 * 
+	 * @param username
+	 * @return
+	 * @throws SQLException
+	 */
 	public Boolean isRegistered(String username) throws SQLException {
 		try {
 			return (boolean) executeQuery(() -> {
@@ -186,23 +275,27 @@ public class MarvelDAO {
 		return null;
 	}
 
-//	// TODO TEST
-//	public void register(User user) throws DBException, SQLException {
-//		executeQuery(() -> {
-//			QueryBuilder query = new QueryBuilder();
-//			query.insertInto(DBTable.User, getPropertiesListed(user));
-//			return null; // Interface MyRunable returns T so I need to return something.
-//		});
-//	}
-
+	/**
+	 * Gets a user by the primary key
+	 * 
+	 * @param username
+	 * @return
+	 * @throws SQLException
+	 */
 	public User getUserByKey(String username) throws SQLException {
 		try {
 			return (User) executeQuery(() -> {
 				QueryBuilder query = new QueryBuilder();
 				query.select().from(DBTable.User).where(DBColumn.username, username);
 				ResultSet resultSet = query.executeQuery();
-
-				return null;
+				resultSet.next();
+				String username2 = resultSet.getString(DBColumn.username.toString());
+				String pswrd = resultSet.getString(DBColumn.pass.toString());
+				int level = resultSet.getInt(DBColumn.level.toString());
+				SuperHero hero = findHero(resultSet.getString(DBColumn.superhero.toString()));
+				Place place = getPlaceByKey(resultSet.getString(DBColumn.place.toString()));
+				int points = resultSet.getInt(DBColumn.points.toString());
+				return new User(username2, pswrd, level, hero, place, points);
 			});
 		} catch (DBException e) {
 			View.printError(e.getMessage());
@@ -335,7 +428,7 @@ public class MarvelDAO {
 					String south = resultSet.getString(DBColumn.south.toString());
 					String east = resultSet.getString(DBColumn.east.toString());
 					String west = resultSet.getString(DBColumn.west.toString());
-					return new Place(name, description, north, south, east, west);
+					return new Place(name2, description, north, south, east, west);
 				} else
 					throw new DBException(DBErrors.DOESNT_EXIST);
 			});
@@ -345,6 +438,12 @@ public class MarvelDAO {
 		return null;
 	}
 
+	/**
+	 * Updates a Gem to the DB.
+	 * 
+	 * @param gem
+	 * @throws SQLException
+	 */
 	public void updateGem(final GemTO gem) throws SQLException {
 		try {
 			executeQuery(() -> {

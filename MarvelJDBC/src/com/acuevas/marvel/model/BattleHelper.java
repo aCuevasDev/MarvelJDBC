@@ -3,14 +3,13 @@ package com.acuevas.marvel.model;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Battle {
+public class BattleHelper {
 
 	/**
 	 * Auxiliary class to save useful data about the battle but not relevant to the
 	 * model itself.
 	 * 
 	 * @author Alex
-	 * @param <T> The owner which is going to delegate on.
 	 *
 	 */
 	private class OwnerInBattle {
@@ -32,7 +31,7 @@ public class Battle {
 	private OwnerInBattle userInBattle;
 	private Map<Integer, BattleTurnResult> turnsPlayed = new HashMap<>();
 
-	public Battle(User user, Villain villain) {
+	public BattleHelper(User user, Villain villain) {
 		this.villainInBattle = new OwnerInBattle(villain, false);
 		this.userInBattle = new OwnerInBattle(user, isVillainWeakened(user, villain));
 		run();

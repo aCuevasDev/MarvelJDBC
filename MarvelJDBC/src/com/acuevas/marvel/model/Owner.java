@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import com.acuevas.marvel.exceptions.CommandException;
+import com.acuevas.marvel.exceptions.CommandException.CommandErrors;
 import com.acuevas.marvel.model.Attack.Type;
 import com.acuevas.marvel.persistance.MarvelDAO;
 
@@ -15,6 +17,11 @@ public abstract class Owner {
 	protected Place place;
 	protected List<GemTO> gems = new ArrayList<>();
 
+	/**
+	 * Generates a random Attack
+	 * 
+	 * @return Attack
+	 */
 	public Attack attack() {
 		List<Type> types = Arrays.asList(Type.values());
 		int random = new Random().nextInt(types.size());
@@ -22,17 +29,36 @@ public abstract class Owner {
 		return attack;
 	}
 
-	public void updateGemsPlace() {
-		// TODO THE SQL MUST BE TRANSACTIONAL
-		gems.forEach(gem -> {
-			gem.setPlace(place.getName());
-			try {
-				MarvelDAO.getInstance().updateGem(gem);
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		});
+	/**
+	 * Updates the place of the gems in the DB
+	 * 
+	 * @throws SQLException
+	 */
+	public void updateGemsPlace() throws SQLException {
+		for (GemTO gemTO : gems) {
+			gemTO.setPlace(place.getName());
+			MarvelDAO.getInstance().updateGem(gemTO);
+		}
+	}
+
+	/**
+	 * Picks up the gem
+	 * 
+	 * @param availableGems
+	 * @param name
+	 * @throws SQLException
+	 * @throws CommandException
+	 */
+	public void pickUpGem(String name) throws SQLException, CommandException {
+		// TODO MODEL CANNOT MAKE CALLS TO DAO
+		List<GemTO> availableGems = MarvelDAO.getInstance().getGemsWithoutOwnerOn(place);
+		GemTO newGem = new GemTO(name);
+		if (availableGems.contains(newGem)) {
+			int index = availableGems.indexOf(newGem);
+			gems.add(availableGems.get(index));
+		} else
+			throw new CommandException(CommandErrors.WRONG_GEM);
+
 	}
 
 	/**

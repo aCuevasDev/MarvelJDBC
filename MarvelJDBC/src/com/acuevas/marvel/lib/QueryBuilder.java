@@ -48,14 +48,21 @@ public class QueryBuilder {
 	 * @throws QueryException
 	 * @throws DBException
 	 */
-	public void insertInto(DBTable dbTable, List<Object> values) throws SQLException, QueryException {
-		// TODO do insert with columns instead of index
-		query += ("insert into " + dbTable.name() + " values (");
-		comparators.addAll(values);
-		values.forEach(value -> query += (" ? ,"));
-		checkEnding(true);
-		insertValuesIntoQuery();
-		preparedStatement.executeUpdate();
+	public void insertInto(DBTable dbTable, List<Object> values) throws QueryException, DBException, SQLException {
+		try {
+			connection.setAutoCommit(false);
+			query += ("insert into " + dbTable.name() + " values (");
+			comparators.addAll(values);
+			values.forEach(value -> query += (" ? ,"));
+			checkEnding(true);
+			insertValuesIntoQuery();
+			preparedStatement.executeUpdate();
+		} catch (SQLException e) {
+			connection.rollback();
+			throw new DBException(DBErrors.COULD_NOT_UPDATE);
+		} finally {
+			connection.setAutoCommit(true);
+		}
 	}
 
 	/**
@@ -230,10 +237,25 @@ public class QueryBuilder {
 	}
 
 	public QueryBuilder where(DBColumn column, Object comparator) {
-		// TODO MAYBE USE query.matches to check if the query is right?
-
 		query += ("where " + column.name() + " = '" + comparator.toString() + "' ");
-//		comparators.add(comparator);
+		where = true;
+		return this;
+	}
+
+	public QueryBuilder nWhere(DBColumn column, Object comparator) {
+		query += ("where " + column.name() + " != '" + comparator.toString() + "' ");
+		where = true;
+		return this;
+	}
+
+	public QueryBuilder whereNotNull(DBColumn column) {
+		query += ("where " + column.name() + " IS NOT NULL");
+		where = true;
+		return this;
+	}
+
+	public QueryBuilder whereNull(DBColumn column) {
+		query += ("where " + column.name() + " IS NULL");
 		where = true;
 		return this;
 	}
@@ -243,7 +265,6 @@ public class QueryBuilder {
 			throw new QueryException(QueryError.WHERE_BEFORE);
 
 		query += ("and " + column.name() + " = '" + comparator.toString() + "'");
-//		comparators.add(comparator);
 		return this;
 	}
 
@@ -252,7 +273,6 @@ public class QueryBuilder {
 			throw new QueryException(QueryError.WHERE_BEFORE);
 
 		query += ("and " + column.name() + " != '" + comparator.toString() + "'");
-//		comparators.add(comparator);
 		return this;
 	}
 
@@ -261,7 +281,6 @@ public class QueryBuilder {
 			throw new QueryException(QueryError.WHERE_BEFORE);
 
 		query += ("or " + column.name() + " = '" + comparator.toString() + "'");
-//		comparators.add(comparator);
 		return this;
 	}
 
@@ -270,7 +289,6 @@ public class QueryBuilder {
 			throw new QueryException(QueryError.WHERE_BEFORE);
 
 		query += ("or " + column.name() + " != '" + comparator.toString() + "'");
-//		comparators.add(comparator);
 		return this;
 	}
 

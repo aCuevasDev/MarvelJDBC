@@ -1,5 +1,7 @@
 package com.acuevas.marvel.model;
 
+import java.sql.SQLException;
+
 import com.acuevas.marvel.exceptions.CommandException;
 import com.acuevas.marvel.exceptions.CommandException.CommandErrors;
 import com.acuevas.marvel.model.Place.directionsEnum;
@@ -23,11 +25,14 @@ public class User extends Owner {
 		this.password = password;
 	}
 
-//	public User(String username, String password, SuperHero superhero) {
-//		this.username = username;
-//		this.password = password;
-//		this.superhero = superhero;
-//	}
+	public User(String username, String password, int level, SuperHero hero, Place place, int points) {
+		this.username = username;
+		this.password = password;
+		this.level = level;
+		this.superhero = hero;
+		this.place = place;
+		this.points = points;
+	}
 
 	public User(String username, String password, SuperHero hero, Place place) {
 		this.username = username;
@@ -36,9 +41,9 @@ public class User extends Owner {
 		this.place = place;
 	}
 
-	public void move(String direction) throws CommandException {
+	public void move(String direction) throws CommandException, SQLException {
 		Place newPlace;
-		switch (direction.substring(0, 1).toUpperCase()) {
+		switch (direction.toUpperCase()) {
 		case "N":
 			newPlace = MarvelDAO.getInstance().getPlaceByKey(place.getDirection(directionsEnum.north));
 			break;
@@ -57,6 +62,7 @@ public class User extends Owner {
 		}
 
 		place = newPlace;
+		super.updateGemsPlace();
 	}
 
 	/**
