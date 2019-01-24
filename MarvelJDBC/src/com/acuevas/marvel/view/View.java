@@ -1,7 +1,11 @@
 package com.acuevas.marvel.view;
 
+import java.util.List;
+
 import com.acuevas.marvel.model.Place;
+import com.acuevas.marvel.model.SuperHero;
 import com.acuevas.marvel.model.User;
+import com.acuevas.marvel.model.Villain;
 
 public class View {
 
@@ -9,7 +13,8 @@ public class View {
 		USER_REGISTERED("User registered."), GOODBYE("Goodbye!"), AVAILABLE_GEMS("Showing available gems:"),
 		AVAILABLE_PLACES("You can go:"), INSERT_COMMAND("Please insert a command."), HELLO("Hello!"),
 		WELCOME("Welcome,"), PLACE("Place:"), NO_GEMS("There're no gems here."), NOBODY("There's nobody here."),
-		SEPARATOR(" | ");
+		SEPARATOR(" | "), MOVING("Moving to..."), NO_AVAILABLE_GEMS("There isn't any gem here."),
+		GEM_PICKED("Gem picked up. ");
 
 		private String message;
 
@@ -38,14 +43,8 @@ public class View {
 			this.message = message;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see java.lang.Enum#toString()
-		 */
 		@Override
 		public String toString() {
-			// TODO Auto-generated method stub
 			return super.toString();
 		}
 
@@ -67,10 +66,6 @@ public class View {
 		System.out.print(message);
 	}
 
-	public static void printMessage(ViewMessage message, User user) {
-		System.out.println(message + " " + user.getUsername());
-	}
-
 	public static void printMessage(ViewMessage message) {
 		System.out.println(message);
 	}
@@ -79,6 +74,20 @@ public class View {
 		System.out.println(ViewMessage.PLACE + place.getName());
 		System.out.println(place.getDescription());
 		printMinus();
+	}
+
+	public static void printHeroes(List<SuperHero> heroes) {
+		heroes.forEach(hero -> printMessage(hero.getName() + " " + hero.getSuperpower() + " "));
+	}
+
+	public static void printVillains(List<Villain> villains) {
+		System.out.println("Showing villains: ");
+		villains.forEach(villan -> printMessage(
+				"name: " + villan.getName() + "- debility: " + villan.getDebility() + "- level " + villan.getLevel()));
+	}
+
+	public static void printUsername(ViewMessage message, User user) {
+		System.out.println(message + " " + user.getUsername());
 	}
 
 	public static void printMinus() {

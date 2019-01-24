@@ -1,15 +1,11 @@
 package com.acuevas.marvel.model;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import com.acuevas.marvel.exceptions.CommandException;
-import com.acuevas.marvel.exceptions.CommandException.CommandErrors;
 import com.acuevas.marvel.model.Attack.Type;
-import com.acuevas.marvel.persistance.MarvelDAO;
 
 public abstract class Owner {
 
@@ -29,36 +25,14 @@ public abstract class Owner {
 		return attack;
 	}
 
-	/**
-	 * Updates the place of the gems in the DB
+	/*
+	 * (non-Javadoc)
 	 * 
-	 * @throws SQLException
+	 * @see java.lang.Object#toString()
 	 */
-	public void updateGemsPlace() throws SQLException {
-		for (GemTO gemTO : gems) {
-			gemTO.setPlace(place.getName());
-			MarvelDAO.getInstance().updateGem(gemTO);
-		}
-	}
-
-	/**
-	 * Picks up the gem
-	 * 
-	 * @param availableGems
-	 * @param name
-	 * @throws SQLException
-	 * @throws CommandException
-	 */
-	public void pickUpGem(String name) throws SQLException, CommandException {
-		// TODO MODEL CANNOT MAKE CALLS TO DAO
-		List<GemTO> availableGems = MarvelDAO.getInstance().getGemsWithoutOwnerOn(place);
-		GemTO newGem = new GemTO(name);
-		if (availableGems.contains(newGem)) {
-			int index = availableGems.indexOf(newGem);
-			gems.add(availableGems.get(index));
-		} else
-			throw new CommandException(CommandErrors.WRONG_GEM);
-
+	@Override
+	public String toString() {
+		return "Owner [level=" + level + ", place=" + place + ", gems=" + gems + "]";
 	}
 
 	/**

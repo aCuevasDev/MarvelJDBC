@@ -62,7 +62,6 @@ public class User extends Owner {
 		}
 
 		place = newPlace;
-		super.updateGemsPlace();
 	}
 
 	/**

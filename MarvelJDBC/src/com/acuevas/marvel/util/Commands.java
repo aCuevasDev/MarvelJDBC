@@ -2,7 +2,7 @@ package com.acuevas.marvel.util;
 
 public enum Commands {
 
-	LOGIN(3), REGISTER(4), VIEW_HEROS(1);
+	LOGIN(3), REGISTER(4), VIEW_HEROS(1), PICKUP(3), BATTLE(2);
 
 	private int maxArguments;
 

@@ -50,4 +50,14 @@ public class Attack implements Comparable<Attack> {
 		return type;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return type.name();
+	}
+
 }

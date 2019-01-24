@@ -6,8 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.acuevas.marvel.exceptions.DBException;
 import com.acuevas.marvel.exceptions.DBException.DBErrors;
@@ -15,6 +17,7 @@ import com.acuevas.marvel.lib.DBTable.DBColumn;
 import com.acuevas.marvel.lib.exceptions.QueryException;
 import com.acuevas.marvel.lib.exceptions.QueryException.QueryError;
 import com.acuevas.marvel.persistance.MarvelDAO;
+import com.acuevas.marvel.view.View;
 
 /**
  * Allows the creation of different complex SQL query by separating the
@@ -31,16 +34,15 @@ public class QueryBuilder {
 	private static Statement statement;
 
 	boolean where = false;
+	boolean innerJoin = false;
 
 	public QueryBuilder() {
 		connection = MarvelDAO.getInstance().getConnection();
 
 	}
 
-	// TODO CHANGE ALL CONCAT SEEMS TO NOT WORK
-
 	/**
-	 * Inserts an object into a table.
+	 * Inserts an object into a table. MUST CONTAIN ALL THE VALUES
 	 * 
 	 * @param dbTable
 	 * @param columnValues
@@ -48,7 +50,7 @@ public class QueryBuilder {
 	 * @throws QueryException
 	 * @throws DBException
 	 */
-	public void insertInto(DBTable dbTable, List<Object> values) throws QueryException, DBException, SQLException {
+	public void insertInto(DBTable dbTable, List<Object> values) throws DBException, SQLException {
 		try {
 			connection.setAutoCommit(false);
 			query += ("insert into " + dbTable.name() + " values (");
@@ -60,9 +62,55 @@ public class QueryBuilder {
 		} catch (SQLException e) {
 			connection.rollback();
 			throw new DBException(DBErrors.COULD_NOT_UPDATE);
+		} catch (QueryException e) {
+			View.printError(e.getMessage());
 		} finally {
 			connection.setAutoCommit(true);
 		}
+	}
+
+	/**
+	 * Inserts the specified columns of an object into a table.
+	 * 
+	 * @param dbTable
+	 * @param columnValues
+	 * @throws DBException
+	 * @throws SQLException
+	 */
+	public void insertInto(DBTable dbTable, Map<DBColumn, Object> columnValues) throws DBException, SQLException {
+		try {
+			connection.setAutoCommit(false);
+			query += ("insert into " + dbTable + " (" + separator(columnValues) + ") values (");
+			Collection<Object> values = columnValues.values();
+			comparators.addAll(values);
+			values.forEach(value -> query += (" ? ,"));
+			checkEnding(true);
+			insertValuesIntoQuery();
+			preparedStatement.executeUpdate();
+		} catch (SQLException e) {
+			connection.rollback();
+			throw new DBException(DBErrors.COULD_NOT_UPDATE);
+		} catch (QueryException e) {
+			View.printError(e.getMessage());
+		} finally {
+			connection.setAutoCommit(true);
+		}
+	}
+
+	/**
+	 * Separates the column names with a ","
+	 * 
+	 * @param columnValues
+	 * @return
+	 * @return
+	 */
+	private String separator(Map<DBColumn, Object> columnValues) {
+		return columnValues.keySet().stream().map(column -> column.name()).collect(Collectors.joining(", "));
+	}
+
+	public void gemsWithoutOwnerQuery(String username) {
+		query = "select distinct g.name, g.place,g.user,g.owner  from Gem g inner join Enemy e on g.owner is null and g.place = e.place and g.user = '"
+				+ username + "'";
 	}
 
 	/**
@@ -103,13 +151,10 @@ public class QueryBuilder {
 	 * @throws SQLException
 	 */
 	public ResultSet executeQuery() throws SQLException {
-		// TODO EXECUTES THE QUERY AND RETURNS A RESULTSET.
-
 		try {
 			insertValuesIntoQuery();
 		} catch (QueryException e) {
-			// TODO show message, query is wrong.
-			e.printStackTrace();
+			View.printError(e.getMessage());
 		}
 		return preparedStatement.executeQuery();
 	}
@@ -122,7 +167,6 @@ public class QueryBuilder {
 	 * @throws DBException
 	 */
 	public void executeUpdate() throws DBException, SQLException {
-		// TODO THIS METHOD EXECUTES A QUERY WHICH RETURNS NOTHING AND UPDATES DB.
 		Statement statement = connection.createStatement();
 		try {
 			connection.setAutoCommit(false);
@@ -143,7 +187,6 @@ public class QueryBuilder {
 	 * @throws QueryException
 	 */
 	private void insertValuesIntoQuery() throws SQLException, QueryException {
-		// TODO DOESNT ALLOW OPERATIONS AFTER CLOSING THE STATEMENT.
 		preparedStatement = connection.prepareStatement(query);
 		try {
 			comparators.forEach(this::safeSelector);
@@ -236,6 +279,11 @@ public class QueryBuilder {
 		return this;
 	}
 
+	public QueryBuilder from(DBTable dbTable, char varName) {
+		query += ("from " + dbTable.name() + " " + varName);
+		return this;
+	}
+
 	public QueryBuilder where(DBColumn column, Object comparator) {
 		query += ("where " + column.name() + " = '" + comparator.toString() + "' ");
 		where = true;
@@ -260,35 +308,66 @@ public class QueryBuilder {
 		return this;
 	}
 
-	public QueryBuilder and(DBColumn column, Object comparator) throws QueryException {
-		if (!where)
-			throw new QueryException(QueryError.WHERE_BEFORE);
+	public QueryBuilder and(DBColumn column, Object comparator) {
+		try {
+			if (!(where || innerJoin))
+				throw new QueryException(QueryError.WHERE_BEFORE);
 
-		query += ("and " + column.name() + " = '" + comparator.toString() + "'");
+			query += ("and " + column.name() + " = '" + comparator.toString() + "'");
+		} catch (QueryException e) {
+			View.printError(e.getMessage());
+		}
 		return this;
 	}
 
-	public QueryBuilder nAnd(DBColumn column, Object comparator) throws QueryException {
-		if (!where)
-			throw new QueryException(QueryError.WHERE_BEFORE);
+	public QueryBuilder nAnd(DBColumn column, Object comparator) {
+		try {
+			if (!(where || innerJoin))
+				throw new QueryException(QueryError.WHERE_BEFORE);
 
-		query += ("and " + column.name() + " != '" + comparator.toString() + "'");
+			query += ("and " + column.name() + " != '" + comparator.toString() + "'");
+		} catch (QueryException e) {
+			View.printError(e.getMessage());
+		}
 		return this;
 	}
 
-	public QueryBuilder or(DBColumn column, Object comparator) throws QueryException {
-		if (!where)
-			throw new QueryException(QueryError.WHERE_BEFORE);
+	public QueryBuilder or(DBColumn column, Object comparator) {
+		try {
+			if (!(where || innerJoin))
+				throw new QueryException(QueryError.WHERE_BEFORE);
 
-		query += ("or " + column.name() + " = '" + comparator.toString() + "'");
+			query += ("or " + column.name() + " = '" + comparator.toString() + "'");
+		} catch (QueryException e) {
+			View.printError(e.getMessage());
+		}
 		return this;
 	}
 
-	public QueryBuilder nOr(DBColumn column, Object comparator) throws QueryException {
-		if (!where)
-			throw new QueryException(QueryError.WHERE_BEFORE);
+	public QueryBuilder nOr(DBColumn column, Object comparator) {
+		try {
+			if (!(where || innerJoin))
+				throw new QueryException(QueryError.WHERE_BEFORE);
 
-		query += ("or " + column.name() + " != '" + comparator.toString() + "'");
+			query += ("or " + column.name() + " != '" + comparator.toString() + "'");
+		} catch (QueryException e) {
+			View.printError(e.getMessage());
+		}
+		return this;
+	}
+
+	public QueryBuilder orderBy(DBColumn column) {
+		query += ("order by " + column.name());
+		return this;
+	}
+
+	public QueryBuilder orderByRandom() {
+		query += ("order by rand() ");
+		return this;
+	}
+
+	public QueryBuilder limit(int limit) {
+		query += ("limit " + limit + " ");
 		return this;
 	}
 
@@ -318,6 +397,53 @@ public class QueryBuilder {
 	 */
 	public static void setStatement(Statement statement) {
 		QueryBuilder.statement = statement;
+	}
+
+	public QueryBuilder innerJoin(DBTable dbTable) throws QueryException {
+		if (where)
+			throw new QueryException(QueryError.NOT_WHERE_BEFORE);
+
+		query += "inner join " + dbTable.name() + " ";
+		innerJoin = true;
+		return this;
+	}
+
+	public QueryBuilder innerJoin(DBTable dbTable, char varName) throws QueryException {
+		if (where)
+			throw new QueryException(QueryError.NOT_WHERE_BEFORE);
+
+		query += "inner join " + dbTable.name() + " " + varName;
+		innerJoin = true;
+		return this;
+	}
+
+	public QueryBuilder on(DBTable dbTable1, DBColumn dbColumn1, DBTable dbTable2, DBColumn dbColumn2)
+			throws QueryException {
+		if (!innerJoin)
+			throw new QueryException(QueryError.INNER_BEFORE);
+
+		query += "on " + dbTable1.name() + "." + dbColumn1.name() + " = " + dbTable2.name() + "." + dbColumn2.name()
+				+ " ";
+		return this;
+	}
+
+	public QueryBuilder onNull(DBTable dbTable, DBColumn dbColumn) throws QueryException {
+		if (!innerJoin)
+			throw new QueryException(QueryError.INNER_BEFORE);
+
+		query += "on " + dbTable.name() + "." + dbColumn.name() + " is null ";
+		return this;
+	}
+
+	public QueryBuilder innerAnd(DBTable dbTable1, DBColumn dbColumn1, DBTable dbTable2, DBColumn dbColumn2)
+			throws QueryException {
+		if (!innerJoin)
+			throw new QueryException(QueryError.INNER_BEFORE);
+
+		query += "and " + dbTable1.name() + "." + dbColumn1.name() + " = " + dbTable2.name() + "." + dbColumn2.name()
+				+ " ";
+
+		return this;
 	}
 
 }

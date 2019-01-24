@@ -37,7 +37,7 @@ public class Place {
 		if (directionAvaliable(south))
 			getDirections().put(directionsEnum.south, south);
 		if (directionAvaliable(east))
-			getDirections().put(directionsEnum.east, south);
+			getDirections().put(directionsEnum.east, east);
 		if (directionAvaliable(west))
 			getDirections().put(directionsEnum.west, west);
 

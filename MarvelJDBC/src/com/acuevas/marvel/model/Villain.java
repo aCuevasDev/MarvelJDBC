@@ -6,6 +6,17 @@ public class Villain extends Owner {
 	private String debility;
 
 	/**
+	 * @param name
+	 * @param debility
+	 */
+	public Villain(String name, String debility, int level, Place place) {
+		this.name = name;
+		this.debility = debility;
+		this.level = level;
+		this.place = place;
+	}
+
+	/**
 	 * 
 	 */
 	public void move() {

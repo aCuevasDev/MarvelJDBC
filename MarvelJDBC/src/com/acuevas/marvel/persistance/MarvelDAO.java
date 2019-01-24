@@ -15,12 +15,14 @@ import com.acuevas.marvel.exceptions.DBException;
 import com.acuevas.marvel.exceptions.DBException.DBErrors;
 import com.acuevas.marvel.lib.DBTable;
 import com.acuevas.marvel.lib.DBTable.DBColumn;
-import com.acuevas.marvel.lib.MyRunnable;
 import com.acuevas.marvel.lib.QueryBuilder;
+import com.acuevas.marvel.lib.interfaces.MyRunnable;
+import com.acuevas.marvel.lib.interfaces.MyRunnableVoid;
 import com.acuevas.marvel.model.GemTO;
 import com.acuevas.marvel.model.Place;
 import com.acuevas.marvel.model.SuperHero;
 import com.acuevas.marvel.model.User;
+import com.acuevas.marvel.model.Villain;
 import com.acuevas.marvel.view.View;
 import com.mysql.jdbc.StatementImpl;
 
@@ -33,8 +35,6 @@ import com.mysql.jdbc.StatementImpl;
  */
 
 public class MarvelDAO {
-
-	// TODO ELIMINATE DBEXCEPTION THROWS AND PUT A TRYCATCH TO CONTROL ERROR
 
 	private Connection connection;
 	private Statement statement;
@@ -89,23 +89,18 @@ public class MarvelDAO {
 	 */
 	@SuppressWarnings("unchecked")
 	public List<SuperHero> findAllHeroes() throws SQLException {
-		try {
-			return (List<SuperHero>) executeQuery(() -> {
-				List<SuperHero> superHeroes = new ArrayList<>();
-				QueryBuilder query = new QueryBuilder();
-				query.select().from(DBTable.Superhero);
-				ResultSet resultSet = query.executeQuery();
-				while (resultSet.next()) {
-					String name = resultSet.getString(DBColumn.name.toString());
-					String superpower = resultSet.getString(DBColumn.superpower.toString());
-					superHeroes.add(new SuperHero(name, superpower));
-				}
-				return superHeroes;
-			});
-		} catch (DBException e) {
-			View.printError(e.getMessage());
-		}
-		return null;
+		return (List<SuperHero>) executeQuery(() -> {
+			List<SuperHero> superHeroes = new ArrayList<>();
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.Superhero);
+			ResultSet resultSet = query.executeQuery();
+			while (resultSet.next()) {
+				String name = resultSet.getString(DBColumn.name.toString());
+				String superpower = resultSet.getString(DBColumn.superpower.toString());
+				superHeroes.add(new SuperHero(name, superpower));
+			}
+			return superHeroes;
+		});
 	}
 
 	/**
@@ -118,29 +113,23 @@ public class MarvelDAO {
 	 * @throws DBException  if the name given doesn't exist in the DB
 	 */
 	public SuperHero findHero(String name) throws SQLException {
-
-		try {
-			return (SuperHero) executeQuery(() -> {
-				QueryBuilder query = new QueryBuilder();
-				query.select().from(DBTable.Superhero).where(DBColumn.name, name);
-				ResultSet resultSet = query.executeQuery();
-				String superpower = null;
-				String name2 = null;
-				if (resultSet.next()) {
-					name2 = resultSet.getString(DBColumn.name.toString());
-					// Getting the name again because the user may input it in
-					// underCase and it's still valid for the DB.
-					// Ex: User input: superjava Real name: SuperJava
-					// Must be a new variable (name2) because of the different enclosing space.
-					superpower = resultSet.getString(DBColumn.superpower.toString());
-				} else
-					throw new DBException(DBErrors.DOESNT_EXIST);
-				return new SuperHero(name2, superpower);
-			});
-		} catch (DBException e) {
-			View.printError(e.getMessage());
-		}
-		return null;
+		return (SuperHero) executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.Superhero).where(DBColumn.name, name);
+			ResultSet resultSet = query.executeQuery();
+			String superpower = null;
+			String name2 = null;
+			if (resultSet.next()) {
+				name2 = resultSet.getString(DBColumn.name.toString());
+				// Getting the name again because the user may input it in
+				// underCase and it's still valid for the DB.
+				// Ex: User input: superjava Real name: SuperJava
+				// Must be a new variable (name2) because of the different enclosing space.
+				superpower = resultSet.getString(DBColumn.superpower.toString());
+			} else
+				throw new DBException(DBErrors.DOESNT_EXIST, name);
+			return new SuperHero(name2, superpower);
+		});
 	}
 
 	/**
@@ -148,31 +137,26 @@ public class MarvelDAO {
 	 * 
 	 * @param user
 	 * @throws SQLException
+	 * @throws DBException
 	 */
-	public void insert(User user) throws SQLException {
+	public void insert(User user) throws SQLException, DBException {
+		if (!isRegistered(user.getUsername())) {
+			executeQuery(() -> {
 
-		try {
-			if (!isRegistered(user.getUsername())) {
-				executeQuery(() -> {
-					QueryBuilder query = new QueryBuilder();
-					List<Object> values = new ArrayList<>();
+				QueryBuilder query = new QueryBuilder();
+				List<Object> values = new ArrayList<>();
 
-					values.add(user.getUsername());
-					values.add(user.getPassword());
-					values.add(user.getLevel());
-					values.add(user.getSuperhero().getName());
-					values.add(user.getPlace().getName());
-					values.add(user.getPoints());
+				values.add(user.getUsername());
+				values.add(user.getPassword());
+				values.add(user.getLevel());
+				values.add(user.getSuperhero().getName());
+				values.add(user.getPlace().getName());
+				values.add(user.getPoints());
 
-					query.insertInto(DBTable.User, values);
-					return null;
-				});
-			} else
-				throw new DBException(DBErrors.USER_ALREADY_EXISTS);
-		} catch (DBException e) {
-			View.printError(e.getMessage());
-		}
-
+				query.insertInto(DBTable.User, values);
+			});
+		} else
+			throw new DBException(DBErrors.USER_ALREADY_EXISTS);
 	}
 
 	/**
@@ -183,26 +167,22 @@ public class MarvelDAO {
 	 * @throws SQLException
 	 */
 	@SuppressWarnings("unchecked")
-	public List<GemTO> getGemsWithoutOwnerOn(Place place) throws SQLException {
-		try {
-			return (List<GemTO>) executeQuery(() -> {
-				List<GemTO> gems = new ArrayList<>();
-				QueryBuilder query = new QueryBuilder();
-				query.select().from(DBTable.Gem).whereNull(DBColumn.owner).and(DBColumn.place, place.getName());
-				ResultSet resultSet = query.executeQuery();
-				while (resultSet.next()) {
-					String name = resultSet.getString(DBColumn.name.toString());
-					String user = resultSet.getString(DBColumn.user.toString());
-					String owner = resultSet.getString(DBColumn.owner.toString());
-					String place2 = resultSet.getString(DBColumn.place.toString());
-					gems.add(new GemTO(name, user, owner, place2));
-				}
-				return gems;
-			});
-		} catch (DBException e) {
-			View.printError(e.getMessage());
-		}
-		return null;
+	public List<GemTO> getGemsWithoutOwnerOn(Place place, User user) throws SQLException {
+		return (List<GemTO>) executeQuery(() -> {
+			List<GemTO> gems = new ArrayList<>();
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.Gem).whereNull(DBColumn.owner).and(DBColumn.place, place.getName())
+					.and(DBColumn.user, user.getUsername());
+			ResultSet resultSet = query.executeQuery();
+			while (resultSet.next()) {
+				String name = resultSet.getString(DBColumn.name.toString());
+				String user2 = resultSet.getString(DBColumn.user.toString());
+				String owner = resultSet.getString(DBColumn.owner.toString());
+				String place2 = resultSet.getString(DBColumn.place.toString());
+				gems.add(new GemTO(name, user2, owner, place2));
+			}
+			return gems;
+		});
 	}
 
 	/**
@@ -212,22 +192,26 @@ public class MarvelDAO {
 	 * @return List<Place>
 	 * @throws SQLException
 	 */
-	public List<Place> getRandomPlace(int limit) throws SQLException {
-		List<Place> places = new ArrayList<>();
-		String query = "select * from place order by rand() limit " + limit;
-		Statement statement = connection.createStatement();
-		ResultSet resultSet = statement.executeQuery(query);
-		while (resultSet.next()) {
-			String name2 = resultSet.getString(DBColumn.name.toString());
-			String description = resultSet.getString(DBColumn.description.toString());
-			String north = resultSet.getString(DBColumn.north.toString());
-			String south = resultSet.getString(DBColumn.south.toString());
-			String east = resultSet.getString(DBColumn.east.toString());
-			String west = resultSet.getString(DBColumn.west.toString());
-			places.add(new Place(name2, description, north, south, east, west));
-		}
-		return places;
+	@SuppressWarnings("unchecked")
+	public List<Place> getRandomPlace(final int limit) throws SQLException {
 
+		return (List<Place>) executeQuery(() -> {
+			List<Place> places = new ArrayList<>();
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.Place).orderByRandom().limit(limit);
+			ResultSet resultSet = query.executeQuery();
+
+			while (resultSet.next()) {
+				String name2 = resultSet.getString(DBColumn.name.toString());
+				String description = resultSet.getString(DBColumn.description.toString());
+				String north = resultSet.getString(DBColumn.north.toString());
+				String south = resultSet.getString(DBColumn.south.toString());
+				String east = resultSet.getString(DBColumn.east.toString());
+				String west = resultSet.getString(DBColumn.west.toString());
+				places.add(new Place(name2, description, north, south, east, west));
+			}
+			return places;
+		});
 	}
 
 	/**
@@ -239,18 +223,13 @@ public class MarvelDAO {
 	 * @throws SQLException
 	 */
 	public Boolean isVillianPresent(String place) throws SQLException {
-		try {
-			return (boolean) executeQuery(() -> {
-				QueryBuilder query = new QueryBuilder();
-				query.select().from(DBTable.Enemy).where(DBColumn.place, place);
-				ResultSet resultSet = query.executeQuery();
+		return (boolean) executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.Enemy).where(DBColumn.place, place);
+			ResultSet resultSet = query.executeQuery();
 
-				return resultSet.next();
-			});
-		} catch (DBException e) {
-			View.printError(e.getMessage());
-		}
-		return null;
+			return resultSet.next();
+		});
 	}
 
 	/**
@@ -261,18 +240,13 @@ public class MarvelDAO {
 	 * @throws SQLException
 	 */
 	public Boolean isRegistered(String username) throws SQLException {
-		try {
-			return (boolean) executeQuery(() -> {
-				QueryBuilder query = new QueryBuilder();
-				query.select().from(DBTable.User).where(DBColumn.username, username);
-				ResultSet resultSet = query.executeQuery();
+		return (boolean) executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.User).where(DBColumn.username, username);
+			ResultSet resultSet = query.executeQuery();
 
-				return resultSet.next();
-			});
-		} catch (DBException e) {
-			View.printError(e.getMessage());
-		}
-		return null;
+			return resultSet.next();
+		});
 	}
 
 	/**
@@ -283,68 +257,20 @@ public class MarvelDAO {
 	 * @throws SQLException
 	 */
 	public User getUserByKey(String username) throws SQLException {
-		try {
-			return (User) executeQuery(() -> {
-				QueryBuilder query = new QueryBuilder();
-				query.select().from(DBTable.User).where(DBColumn.username, username);
-				ResultSet resultSet = query.executeQuery();
-				resultSet.next();
-				String username2 = resultSet.getString(DBColumn.username.toString());
-				String pswrd = resultSet.getString(DBColumn.pass.toString());
-				int level = resultSet.getInt(DBColumn.level.toString());
-				SuperHero hero = findHero(resultSet.getString(DBColumn.superhero.toString()));
-				Place place = getPlaceByKey(resultSet.getString(DBColumn.place.toString()));
-				int points = resultSet.getInt(DBColumn.points.toString());
-				return new User(username2, pswrd, level, hero, place, points);
-			});
-		} catch (DBException e) {
-			View.printError(e.getMessage());
-		}
-		return null;
+		return (User) executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.User).where(DBColumn.username, username);
+			ResultSet resultSet = query.executeQuery();
+			resultSet.next();
+			String username2 = resultSet.getString(DBColumn.username.toString());
+			String pswrd = resultSet.getString(DBColumn.pass.toString());
+			int level = resultSet.getInt(DBColumn.level.toString());
+			SuperHero hero = findHero(resultSet.getString(DBColumn.superhero.toString()));
+			Place place = getPlaceByKey(resultSet.getString(DBColumn.place.toString()));
+			int points = resultSet.getInt(DBColumn.points.toString());
+			return new User(username2, pswrd, level, hero, place, points);
+		});
 	}
-
-	/**
-	 * This method asks the DB for a UserTO with only username&password to check if
-	 * they match with the login provided by the user.
-	 * 
-	 * @throws SQLException
-	 * @throws DBException
-	 */
-	public User getUserTOByKey(String username) throws SQLException {
-		try {
-			return (User) executeQuery(() -> {
-				QueryBuilder query = new QueryBuilder();
-				query.select().from(DBTable.User).where(DBColumn.username, username);
-				ResultSet resultSet = query.executeQuery();
-				resultSet.next();
-				return new User(resultSet.getString(DBColumn.username.toString()),
-						resultSet.getString(DBColumn.pass.toString()));
-			});
-
-		} catch (DBException e) {
-			View.printError(e.getMessage());
-		}
-		return null;
-	}
-
-	// TODO THIS
-	/**
-	 * Gets the properties of an instance of User and stores them into a map linking
-	 * the property with the column of the DB
-	 * 
-	 * @param user User
-	 * @return a Map where the key is the column of the DB and the value its value.
-	 */
-//	public Map<DBColumn, Object> getPropertiesListed(User user) {
-//		Map<DBColumn, Object> userProperties = new HashMap<>();
-//		userProperties.put(DBColumn.username, user.getUsername());
-//		userProperties.put(DBColumn.pass, user.getPassword());
-//		userProperties.put(DBColumn.level, user.getLevel());
-//		userProperties.put(DBColumn.superhero, user.getSuperhero().getName());
-//		userProperties.put(DBColumn.place, user.getPlace());
-//		userProperties.put(DBColumn.points, user.getPoints());
-//		return userProperties;
-//	} 
 
 	/**
 	 * Connects with the DB, executes the given IMyRunnable and then closes all the
@@ -361,8 +287,8 @@ public class MarvelDAO {
 	 * @return Object ... An Object.
 	 */
 	@SuppressWarnings("rawtypes")
-	private Object executeQuery(MyRunnable runnable) throws DBException, SQLException {
-		Object obj;
+	private Object executeQuery(MyRunnable runnable) throws SQLException {
+		Object obj = null;
 		try {
 			connect();
 
@@ -371,9 +297,9 @@ public class MarvelDAO {
 		} catch (SQLException e) {
 			throw e;
 		} catch (DBException e) {
-			throw e;
+			View.printError(e.getMessage());
 		} catch (Exception e) {
-			throw new DBException(e);
+			View.printError(e.getMessage());
 		} finally {
 			if (getStatement() != null && !getStatement().isClosed())
 				getStatement().close();
@@ -384,20 +310,32 @@ public class MarvelDAO {
 		return obj;
 	}
 
-	/*
-	 * @SuppressWarnings("unchecked") public List<String> getColumnNames(String
-	 * table) throws DBException, SQLException { // TODO RELIES ON ORDER ATM return
-	 * (List<String>) executeQuery(() -> {
-	 * setStatement(connection.createStatement()); List<String> columnNames = new
-	 * ArrayList<>(); String query = "select * from " + table + " limit 1;";
-	 * ResultSet resultSet = getStatement().executeQuery(query);
-	 * resultSet.beforeFirst(); ResultSetMetaData resultSetMetaData =
-	 * resultSet.getMetaData(); int total = resultSetMetaData.getColumnCount(); for
-	 * (int i = 1; i < total + 1; i++)
-	 * columnNames.add(resultSetMetaData.getColumnName(i));
+	/**
+	 * Same as executeQuery but returns void
 	 * 
-	 * return columnNames; }); }
+	 * @param runnable
+	 * @throws SQLException
 	 */
+	private void executeQuery(MyRunnableVoid runnable) throws SQLException {
+		try {
+			connect();
+
+			runnable.myRun();
+
+		} catch (SQLException e) {
+			throw e;
+		} catch (DBException e) {
+			View.printError(e.getMessage());
+		} catch (Exception e) {
+			View.printError(e.getMessage());
+		} finally {
+			if (getStatement() != null && !getStatement().isClosed())
+				getStatement().close();
+			if (getPreparedStatement() != null && !getPreparedStatement().isClosed())
+				getPreparedStatement().close();
+			disconnect();
+		}
+	}
 
 	/**
 	 * 
@@ -416,26 +354,21 @@ public class MarvelDAO {
 	 * @throws SQLException
 	 */
 	public Place getPlaceByKey(String name) throws SQLException {
-		try {
-			return (Place) executeQuery(() -> {
-				QueryBuilder query = new QueryBuilder();
-				query.select().from(DBTable.Place).where(DBColumn.name, name);
-				ResultSet resultSet = query.executeQuery();
-				if (resultSet.next()) {
-					String name2 = resultSet.getString(DBColumn.name.toString());
-					String description = resultSet.getString(DBColumn.description.toString());
-					String north = resultSet.getString(DBColumn.north.toString());
-					String south = resultSet.getString(DBColumn.south.toString());
-					String east = resultSet.getString(DBColumn.east.toString());
-					String west = resultSet.getString(DBColumn.west.toString());
-					return new Place(name2, description, north, south, east, west);
-				} else
-					throw new DBException(DBErrors.DOESNT_EXIST);
-			});
-		} catch (DBException e) {
-			View.printError(e.getMessage());
-		}
-		return null;
+		return (Place) executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.Place).where(DBColumn.name, name);
+			ResultSet resultSet = query.executeQuery();
+			if (resultSet.next()) {
+				String name2 = resultSet.getString(DBColumn.name.toString());
+				String description = resultSet.getString(DBColumn.description.toString());
+				String north = resultSet.getString(DBColumn.north.toString());
+				String south = resultSet.getString(DBColumn.south.toString());
+				String east = resultSet.getString(DBColumn.east.toString());
+				String west = resultSet.getString(DBColumn.west.toString());
+				return new Place(name2, description, north, south, east, west);
+			} else
+				throw new DBException(DBErrors.DOESNT_EXIST);
+		});
 	}
 
 	/**
@@ -445,24 +378,17 @@ public class MarvelDAO {
 	 * @throws SQLException
 	 */
 	public void updateGem(final GemTO gem) throws SQLException {
-		try {
-			executeQuery(() -> {
-				QueryBuilder query = new QueryBuilder();
-				Map<DBColumn, Object> properties = new HashMap<>();
+		executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			Map<DBColumn, Object> properties = new HashMap<>();
 
-				properties.put(DBColumn.owner, gem.getOwner());
-				properties.put(DBColumn.place, gem.getPlace());
+			properties.put(DBColumn.owner, gem.getOwner());
+			properties.put(DBColumn.place, gem.getPlace());
 
-				query.update(DBTable.Gem, properties).where(DBColumn.name, gem.getName()).and(DBColumn.user,
-						gem.getUser());
+			query.update(DBTable.Gem, properties).where(DBColumn.name, gem.getName()).and(DBColumn.user, gem.getUser());
 
-				query.executeUpdate();
-
-				return null;
-			});
-		} catch (DBException e) {
-			View.printError(e.getMessage());
-		}
+			query.executeUpdate();
+		});
 	}
 
 	/**
@@ -479,4 +405,124 @@ public class MarvelDAO {
 		return QueryBuilder.getStatement();
 	}
 
+	public void insertGem(GemTO gem) throws SQLException {
+		executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			Map<DBColumn, Object> columnValues = new HashMap<>();
+
+			columnValues.put(DBColumn.name, gem.getName());
+			columnValues.put(DBColumn.user, gem.getUser());
+			columnValues.put(DBColumn.place, gem.getPlace());
+			query.insertInto(DBTable.Gem, columnValues);
+		});
+	}
+
+	/**
+	 * Returns the gems with no owner on a place with a Villain for the User passed
+	 * on.
+	 * 
+	 * @throws SQLException
+	 */
+	@SuppressWarnings("unchecked")
+	public List<GemTO> getAloneGemsOnVilliansPlace(User user) throws SQLException {
+		return (List<GemTO>) executeQuery(() -> {
+			List<GemTO> gems = new ArrayList<>();
+			QueryBuilder query = new QueryBuilder();
+			query.gemsWithoutOwnerQuery(user.getUsername());
+			ResultSet resultSet = query.executeQuery();
+			while (resultSet.next()) {
+				String name = resultSet.getString(DBColumn.name.toString());
+				String place = resultSet.getString(DBColumn.place.toString());
+				String owner = null;
+				String user2 = resultSet.getString(DBColumn.user.toString());
+				GemTO gem = new GemTO(name, user2, owner, place);
+				gems.add(gem);
+			}
+			return gems;
+		});
+	}
+
+	/**
+	 * Returns a random villain from a place passed on by parameter on that User
+	 * 
+	 * @param place
+	 * @return
+	 * @throws SQLException
+	 */
+	public Villain getRandomVillainFromAPlace(final String place) throws SQLException {
+		return (Villain) executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.Enemy).where(DBColumn.place, place).orderByRandom().limit(1);
+			ResultSet resultSet = query.executeQuery();
+
+			if (resultSet.next()) {
+				String name = resultSet.getString(DBColumn.name.toString());
+				String debility = resultSet.getString(DBColumn.debility.toString());
+				int level = resultSet.getInt(DBColumn.level.toString());
+				String placeName = resultSet.getString(DBColumn.place.toString());
+				Place place2 = getPlaceByKey(placeName);
+
+				Villain villain = new Villain(name, debility, level, place2);
+				return villain;
+			} else
+				throw new DBException(DBErrors.PLACE_WITH_NO_VILLAINS);
+		});
+	}
+
+	public Villain getVillainByKey(final String key) throws SQLException {
+		return (Villain) executeQuery(() -> {
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.Enemy).where(DBColumn.name, key);
+			ResultSet resultSet = query.executeQuery();
+
+			if (resultSet.next()) {
+				String name = resultSet.getString(DBColumn.name.toString());
+				String debility = resultSet.getString(DBColumn.debility.toString());
+				int level = resultSet.getInt(DBColumn.level.toString());
+				String placeName = resultSet.getString(DBColumn.place.toString());
+				Place place2 = getPlaceByKey(placeName);
+
+				Villain villain = new Villain(name, debility, level, place2);
+				return villain;
+			} else
+				throw new DBException(DBErrors.DOESNT_EXIST);
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<Villain> getAllVillainFromAPlace(final String place) throws SQLException {
+		return (List<Villain>) executeQuery(() -> {
+			List<Villain> villains = new ArrayList<>();
+			QueryBuilder query = new QueryBuilder();
+			query.select().from(DBTable.Enemy).where(DBColumn.place, place);
+			ResultSet resultSet = query.executeQuery();
+
+			while (resultSet.next()) {
+				String name = resultSet.getString(DBColumn.name.toString());
+				String debility = resultSet.getString(DBColumn.debility.toString());
+				int level = resultSet.getInt(DBColumn.level.toString());
+				String placeName = resultSet.getString(DBColumn.place.toString());
+				Place place2 = getPlaceByKey(placeName);
+
+				Villain villain = new Villain(name, debility, level, place2);
+				villains.add(villain);
+			}
+			return villains;
+		});
+	}
+
+	/**
+	 * Updates the user's place.
+	 * 
+	 * @param user
+	 * @throws SQLException
+	 */
+	public void updateUserPlace(User user) throws SQLException {
+		executeQuery(() -> {
+			Statement statement = connection.createStatement();
+			String query = "UPDATE user SET place = '" + user.getPlace().getName() + "' WHERE username = '"
+					+ user.getUsername() + "';";
+			statement.executeUpdate(query);
+		});
+	}
 }

@@ -4,8 +4,8 @@ package com.acuevas.marvel.lib.exceptions;
 public class QueryException extends Exception {
 
 	public enum QueryError {
-		WHERE_BEFORE("where() must be executed before this method can be called"),
-		NOT_SUPPORTED("inserted type is not supported:");
+		WHERE_BEFORE("where() must be executed before this call"), NOT_SUPPORTED("inserted type is not supported:"),
+		NOT_WHERE_BEFORE("Wrong usage of where()"), INNER_BEFORE("innerJoin() must be executed before this call");
 
 		private String message;
 

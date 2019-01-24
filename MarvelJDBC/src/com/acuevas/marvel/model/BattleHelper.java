@@ -16,7 +16,7 @@ public class BattleHelper {
 		// Making the fields public because they're encapsulated anyway by the private
 		// class and I don't dirty the whole compilation unit by adding getters/setters
 		// to an inner class.
-		public int wins;
+		public int wins = 0;
 		public Owner owner;
 		public boolean isEmpowered;
 
@@ -113,7 +113,7 @@ public class BattleHelper {
 		OwnerInBattle winner = getWinnerOfTurn(attackUser, attackVillain);
 		winner.wins += 1;
 		BattleTurnResult result = new BattleTurnResult(attackUser, attackVillain, winner.owner, turn);
-		turnsPlayed.put(turn, result);
+		getTurnsPlayed().put(turn, result);
 	}
 
 	/**
@@ -122,7 +122,6 @@ public class BattleHelper {
 	public void run() {
 		int turn = 0;
 
-		// TODO TRY IT WITHOUT BRACKETS
 		while (whoHasLowestLevel().owner.level >= turn++) {
 			fightTurn(turn);
 		}
@@ -143,6 +142,20 @@ public class BattleHelper {
 			return villainInBattle;
 		else
 			return userInBattle;
+	}
+
+	/**
+	 * @return the turnsPlayed
+	 */
+	public Map<Integer, BattleTurnResult> getTurnsPlayed() {
+		return turnsPlayed;
+	}
+
+	/**
+	 * @param turnsPlayed the turnsPlayed to set
+	 */
+	public void setTurnsPlayed(Map<Integer, BattleTurnResult> turnsPlayed) {
+		this.turnsPlayed = turnsPlayed;
 	}
 
 	/*
