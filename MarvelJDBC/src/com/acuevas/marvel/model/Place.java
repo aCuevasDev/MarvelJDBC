@@ -8,6 +8,11 @@ public class Place {
 
 	public enum directionsEnum {
 		north, south, east, west;
+
+		@Override
+		public String toString() {
+			return name().substring(0, 1);
+		}
 	}
 
 	private String name;
@@ -38,6 +43,16 @@ public class Place {
 
 	}
 
+	/**
+	 * Constructor only used to compare/delete places from lists, do not use as a
+	 * real one.
+	 * 
+	 * @param name
+	 */
+	public Place(String name) {
+		this.name = name;
+	}
+
 	public String getDirection(directionsEnum directionEnum) {
 		return directions.get(directionEnum);
 	}
@@ -47,9 +62,7 @@ public class Place {
 	}
 
 	private boolean directionAvaliable(String direction) {
-		if (direction != null)
-			return true;
-		return false;
+		return (direction != null);
 	}
 
 	/**
@@ -78,6 +91,41 @@ public class Place {
 	 */
 	public void setDirections(Map<directionsEnum, String> directions) {
 		this.directions = directions;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Place other = (Place) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
 	}
 
 }

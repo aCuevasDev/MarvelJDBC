@@ -6,9 +6,10 @@ import com.acuevas.marvel.model.User;
 public class View {
 
 	public enum ViewMessage {
-		USER_REGISTERED("User registered."), GOODBYE("Goodbye!"), AVAILABLE_GEMS("Showing available gems"),
+		USER_REGISTERED("User registered."), GOODBYE("Goodbye!"), AVAILABLE_GEMS("Showing available gems:"),
 		AVAILABLE_PLACES("You can go:"), INSERT_COMMAND("Please insert a command."), HELLO("Hello!"),
-		WELCOME("Welcome,"), PLACE("Place:"), NO_GEMS("There're no gems here."), NOBODY("There's nobody here.");
+		WELCOME("Welcome,"), PLACE("Place:"), NO_GEMS("There're no gems here."), NOBODY("There's nobody here."),
+		SEPARATOR(" | ");
 
 		private String message;
 
@@ -62,6 +63,10 @@ public class View {
 		System.out.println(message);
 	}
 
+	public static void printMessageInLine(String message) {
+		System.out.print(message);
+	}
+
 	public static void printMessage(ViewMessage message, User user) {
 		System.out.println(message + " " + user.getUsername());
 	}
@@ -78,5 +83,9 @@ public class View {
 
 	public static void printMinus() {
 		System.out.println("---");
+	}
+
+	public static void nextLine() {
+		System.out.println();
 	}
 }

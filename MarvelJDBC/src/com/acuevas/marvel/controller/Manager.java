@@ -28,17 +28,18 @@ public class Manager {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		String line = "";
 		View.printMessage(ViewMessage.HELLO);
-		while (!line.toUpperCase().subSequence(0, 0).equals("X")) {
+
+		do {
 			try {
 				View.printMessage(ViewMessage.INSERT_COMMAND);
 				line = br.readLine();
-				readCommand(line.split(" "));
+				readCommand(line.trim().split(" "));
 			} catch (IOException e) {
 				View.printError(e.getMessage());
 			} catch (SQLException e) {
 				View.printError(e.getMessage());
 			}
-		}
+		} while (!(line.substring(0, 1).equalsIgnoreCase("X")));
 
 		// TODO AN ENEMY MUST PICKUP GEMS IN A PLACE WITHOUT OWNER
 		/*
@@ -171,8 +172,9 @@ public class Manager {
 	private static void showDirections() {
 		View.printMessage(ViewMessage.AVAILABLE_PLACES);
 		loggedInUser.getPlace().directionsAvaliable().forEach(direction -> {
-			View.printMessage(direction.toString());
+			View.printMessageInLine(View.ViewMessage.SEPARATOR + direction.toString() + View.ViewMessage.SEPARATOR);
 		});
+		View.nextLine();
 	}
 
 	/**
@@ -236,6 +238,12 @@ public class Manager {
 		Place place = MarvelDAO.getInstance().getPlaceByKey("New York");
 		User newUser = new User(username, password, hero, place);
 		MarvelDAO.getInstance().insert(newUser);
+
+		List<Place> places = MarvelDAO.getInstance().getRandomPlace(7);
+		Place newYork = new Place("New York");
+		while (places.contains(newYork)) {
+			places.remove(newYork);
+		}
 	}
 
 	/**

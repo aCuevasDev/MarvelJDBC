@@ -8,7 +8,7 @@ public class CommandException extends Exception {
 		SUPERHERO_NOEXISTS("[ There isn't a superhero with that name ]", 202),
 		USER_OR_PSWRD_INCORRECT("[ User or password incorrect ]", 203), WRONG_DIRECTION("[ Wrong direction ]", 204),
 		WRONG_COMMAND("[ Wrong command ]", 205), WRONG_GEM("[ This gem is not available ]", 206),
-		NOT_LOGGED_IN("[ Not logged in ]", 207);
+		NOT_LOGGED_IN("[ Not logged in ]", 207), EMPTY_LINE("[ Please insert a command ]", 208);
 
 		private String message;
 		private int code;

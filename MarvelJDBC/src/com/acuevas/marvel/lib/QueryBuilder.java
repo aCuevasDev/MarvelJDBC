@@ -249,13 +249,13 @@ public class QueryBuilder {
 	}
 
 	public QueryBuilder whereNotNull(DBColumn column) {
-		query += ("where " + column.name() + " IS NOT NULL");
+		query += ("where " + column.name() + " IS NOT NULL ");
 		where = true;
 		return this;
 	}
 
 	public QueryBuilder whereNull(DBColumn column) {
-		query += ("where " + column.name() + " IS NULL");
+		query += ("where " + column.name() + " IS NULL ");
 		where = true;
 		return this;
 	}
