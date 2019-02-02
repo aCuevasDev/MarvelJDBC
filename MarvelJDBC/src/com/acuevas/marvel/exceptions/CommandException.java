@@ -38,4 +38,23 @@ public class CommandException extends Exception {
 		super(error.getMessage());
 	}
 
+	public void test(Comandos comando) {
+
+		switch (comando) {
+		case SPEED:
+			break;
+		case ROOM:
+			break;
+		case REGISTRATION:
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	public enum Comandos {
+		SPEED, ROOM, REGISTRATION;
+	}
+
 }

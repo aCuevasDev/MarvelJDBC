@@ -220,7 +220,6 @@ public class Manager {
 			View.printMessage(ViewMessage.GEM_PICKED);
 		} else
 			throw new CommandException(CommandErrors.WRONG_GEM);
-
 	}
 
 	/**
